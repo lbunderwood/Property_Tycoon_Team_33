@@ -14,25 +14,36 @@ x = 505
 y = 50
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x, y)
 
+
 class Player:
-    def __init__(self, name, balance, shape):
+    def __init__(self, name, shape):
         self.name = name
-        self.balance = balance
+        self.balance = 1500
         self.properties = {}
         self.shape = shape
-        try:
-            if self.shape == 'Boot':
-                self.position = (790, 790)
-            elif self.shape == 'Ship':
-                self.position = (860, 790)
-            elif self.shape == 'Hatstand':
-                self.position = (860, 860)
-            elif self.shape == 'Smartphone':
-                self.position = (790, 860)
-            elif self.shape == 'Cat':
-                self.position = (835, 835)
-        except ValueError:
-            print("Not a valid player shape, redefine player")
+        if self.shape == 'boot':
+            self.position = (790, 790)
+            self.image = pygame.image.load('graphics/boot.png')
+        elif self.shape == 'ship':
+            self.position = (860, 790)
+            self.image = pygame.image.load('graphics/ship.png')
+        elif self.shape == 'hatstand':
+            self.position = (860, 835)
+            self.image = pygame.image.load('graphics/hatstand.png')
+        elif self.shape == 'smartphone':
+            self.position = (790, 870)
+            self.image = pygame.image.load('graphics/smartphone.png')
+        elif self.shape == 'cat':
+            self.position = (860, 870)
+            self.image = pygame.image.load('graphics/cat.png')
+        elif self.shape == 'iron':
+            self.position = (790, 835)
+            self.image = pygame.image.load('graphics/iron.png')
+        else:
+            print("\nNot a valid player shape, check player info")
+            pygame.quit()
+            exit()
+    # def move(self):
 
 
 class Card:
@@ -42,7 +53,7 @@ class Card:
 
 
 class Property:
-    def __init__(self, name, price, position, colour, rent):
+    def __init__(self, name, price, position, colour, rent, image):
         self.name = name
         self.price = price
         self.position = position
@@ -51,15 +62,17 @@ class Property:
         self.owner = ''
         self.rent = 0
         self.mortgaged = False
+        self.image = image
 
 
 class Dice:
     def roll(self):
         return random.randint(1, 6)
 
+
 class Game:
-    def __init__(self, player_count):
-        self.player_count = player_count
+    def __init__(self, players):
+        self.players = players
 
     def main(self):
         # Initialise pygame
@@ -73,134 +86,100 @@ class Game:
         centre.fill('White')
 
         # Text
-        title_font = pygame.font.Font('fonts/monoton.ttf', 50)
-        title_text = title_font.render('Property Tycoon', True, 'Black')
-        title_text_rect = title_text.get_rect(center=(455, 455))
+        title_font = pygame.font.Font('fonts/monoton.ttf', 45)
+        centre_text = title_font.render('Property     Tycoon', True, 'Black')
+        centre_text_rect = centre_text.get_rect(center=(455, 455))
+
+        # Card Stacks
+        opportunityCards = pygame.image.load('graphics/opportunitycards.png')
+        potluckCards = pygame.image.load('graphics/potluckcards.png')
 
         # Player pieces
-        boot_player = Player('Dan', 1500, 'Boot')
-        boot = pygame.image.load('graphics/boot.png')
-        #smartphone
-        #hatstand
-        #ship
-        #iron
-        #cat
+        smartphone = pygame.image.load('graphics/smartphone.png')
+        hatstand = pygame.image.load('graphics/hatstand.png')
+        ship = pygame.image.load('graphics/ship.png')
+        iron = pygame.image.load('graphics/iron.png')
+        cat = pygame.image.load('graphics/cat.png')
 
         # Corners
-        free_parking = pygame.Surface((140, 140))
-        free_parking.fill('White')
+        free_parking = pygame.image.load('graphics/free parking.png')
         go = pygame.image.load('graphics/go.png')
-        go_to_jail = pygame.Surface((140, 140))
-        go_to_jail.fill('White')
+        go_to_jail = pygame.image.load('graphics/go to jail.png')
         jail = pygame.image.load('graphics/jail.png')
 
-        # Oranges
-        broyles = pygame.Surface((140, 70))
-        dunham = pygame.Surface((140, 70))
-        bishop = pygame.Surface((140, 70))
-        broyles.fill('Orange')
-        dunham.fill('Orange')
-        bishop.fill('Orange')
+        # Tax Spaces
+        supertax = pygame.image.load('graphics/supertax.png')
+        incometax = pygame.image.load('graphics/incometax.png')
 
-        # Purples
-        rey = pygame.image.load('graphics/rey.png')
-        wookie = pygame.image.load('graphics/wookie.png')
-        skywalker = pygame.image.load('graphics/skywalker.png')
+        # Card Spaces on Board
+        opportunityH = pygame.image.load('graphics/opportunityH.png')
+        opportunityV = pygame.image.load('graphics/opportunityV.png')
+        potluckH = pygame.image.load('graphics/potluckH.png')
+        potluckV = pygame.image.load('graphics/potluckV.png')
 
-        # Reds
-        hanxin = pygame.Surface((70, 140))
-        mulan = pygame.Surface((70, 140))
-        yuefei = pygame.Surface((70, 140))
-        hanxin.fill('Red')
-        mulan.fill('Red')
-        yuefei.fill('Red')
-
-        # Yellows
-        crusher = pygame.Surface((70, 140))
-        picard = pygame.Surface((70, 140))
-        shatner = pygame.Surface((70, 140))
-        crusher.fill('Yellow')
-        picard.fill('Yellow')
-        shatner.fill('Yellow')
-
-        # Greens
-        ibis = pygame.Surface((140, 70))
-        ghengis = pygame.Surface((140, 70))
-        sirat = pygame.Surface((140, 70))
-        ibis.fill('Green')
-        ghengis.fill('Green')
-        sirat.fill('Green')
-
-        # Dark Blues
-        turing = pygame.Surface((140, 70))
-        james = pygame.Surface((140, 70))
-        turing.fill((43, 54, 255))
-        james.fill((43, 54, 255))
-
-        # Browns
-        gangsters = pygame.Surface((70, 140))
-        creek = pygame.Surface((70, 140))
-        gangsters.fill((210, 146, 106))
-        creek.fill((210, 146, 106))
-
-        # Light Blues
-        granger = pygame.Surface((70, 140))
-        potter = pygame.Surface((70, 140))
-        angel = pygame.Surface((70, 140))
-        granger.fill((43, 199, 255))
-        potter.fill((43, 199, 255))
-        angel.fill((43, 199, 255))
+        # PROPERTIES (PRICE, POSITION, GROUP, RENT, IMAGE)
+        properties = [Property('brighton', 200, (420, 770), 'station', 25, pygame.image.load('graphics/brighton.png')),
+                      Property('falmer', 200, (420, 0), 'station', 25, pygame.image.load('graphics/falmer.png')),
+                      Property('portslade', 200, (770, 420), 'station', 25, pygame.image.load('graphics/portslade.png')),
+                      Property('hove', 200, (0, 420), 'station', 25, pygame.image.load('graphics/hove.png')),
+                      Property('edison', 150, (630, 0), 'utility', 0, pygame.image.load('graphics/edison.png')),
+                      Property('tesla', 150, (0, 630), 'utility', 0, pygame.image.load('graphics/tesla.png')),
+                      Property('broyles', 200, (0, 140), 'orange', 16, pygame.image.load('graphics/broyles.png')),
+                      Property('dunham', 180, (0, 210), 'orange', 14, pygame.image.load('graphics/dunham.png')),
+                      Property('bishop', 180, (0, 350), 'orange', 14, pygame.image.load('graphics/bishop.png')),
+                      Property('rey', 160, (0, 490), 'purple', 12, pygame.image.load('graphics/rey.png')),
+                      Property('wookie', 140, (0, 560), 'purple', 10, pygame.image.load('graphics/wookie.png')),
+                      Property('skywalker', 140, (0, 700), 'purple', 10, pygame.image.load('graphics/skywalker.png')),
+                      Property('hanxin', 240, (350, 0), 'red', 20, pygame.image.load('graphics/hanxin.png')),
+                      Property('mulan', 220, (280, 0), 'red', 18, pygame.image.load('graphics/mulan.png')),
+                      Property('yuefei', 220, (140, 0), 'red', 18, pygame.image.load('graphics/yuefei.png')),
+                      Property('crusher', 280, (700, 0), 'yellow', 22, pygame.image.load('graphics/crusher.png')),
+                      Property('picard', 260, (560, 0), 'yellow', 22, pygame.image.load('graphics/picard.png')),
+                      Property('shatner', 260, (490, 0), 'yellow', 22, pygame.image.load('graphics/shatner.png')),
+                      Property('ibis', 320, (770, 350), 'green', 28, pygame.image.load('graphics/ibis.png')),
+                      Property('ghengis', 300, (770, 210), 'green', 26, pygame.image.load('graphics/ghengis.png')),
+                      Property('sirat', 300, (770, 140), 'green', 26, pygame.image.load('graphics/sirat.png')),
+                      Property('turing', 400, (770, 700), 'dark blue', 50, pygame.image.load('graphics/turing.png')),
+                      Property('james', 350, (770, 560), 'dark blue', 35, pygame.image.load('graphics/james.png')),
+                      Property('gangsters', 60, (560, 770), 'brown', 4, pygame.image.load('graphics/gangsters.png')),
+                      Property('creek', 60, (700, 770), 'brown', 2, pygame.image.load('graphics/creek.png')),
+                      Property('granger', 120, (140, 770), 'light blue', 8, pygame.image.load('graphics/granger.png')),
+                      Property('potter', 100, (210, 770), 'light blue', 6, pygame.image.load('graphics/potter.png')),
+                      Property('angels', 100, (350, 770), 'light blue', 6, pygame.image.load('graphics/angels.png'))]
 
         # Updates and displays player pieces
         def blit_players():
-            # place player pieces
-            screen.blit(boot, boot_player.position)
+            for player in self.players:
+                screen.blit(player.image, player.position)
 
-        # Updates and displays the game board 60 times a second
+        # Updates and displays the static game board 60 times a second
         def blit_board():
-
             # place corners
             screen.blit(free_parking, (0, 0))
             screen.blit(go, (770, 770))
             screen.blit(go_to_jail, (770, 0))
             screen.blit(jail, (0, 770))
             screen.blit(centre, (140, 140))
-
             # place title text
-            screen.blit(title_text, title_text_rect)
+            screen.blit(centre_text, centre_text_rect)
+            # place card stacks
+            screen.blit(opportunityCards, (150, 140))
+            screen.blit(potluckCards, (540, 550))
+            # place card action places
+            screen.blit(opportunityH, (770, 490))
+            screen.blit(opportunityV, (210, 0))
+            screen.blit(opportunityV, (280, 770))
+            screen.blit(potluckH, (0, 280))
+            screen.blit(potluckH, (770, 280))
+            screen.blit(potluckV, (630, 770))
+            # place tax pieces
+            screen.blit(incometax, (490, 770))
+            screen.blit(supertax, (770, 630))
+            for item in properties:
+                screen.blit(item.image, item.position)
 
-            # place location pieces
-            # place reds
-            screen.blit(yuefei, (140, 0))
-            screen.blit(mulan, (280, 0))
-            screen.blit(hanxin, (350, 0))
-            # place yellows
-            screen.blit(shatner, (490, 0))
-            screen.blit(picard, (560, 0))
-            screen.blit(crusher, (700, 0))
-            # place greens
-            screen.blit(sirat, (770, 140))
-            screen.blit(ghengis, (770, 210))
-            screen.blit(ibis, (770, 350))
-            # place dark blues
-            screen.blit(james, (770, 490))
-            screen.blit(turing, (770, 630))
-            # place light blues
-            screen.blit(granger, (140, 770))
-            screen.blit(potter, (210, 770))
-            screen.blit(angel, (350, 770))
-            # place browns
-            screen.blit(gangsters, (560, 770))
-            screen.blit(creek, (700, 770))
-            # place oranges
-            screen.blit(broyles, (0, 140))
-            screen.blit(dunham, (0, 210))
-            screen.blit(bishop, (0, 350))
-            # place purples
-            screen.blit(rey, (0, 490))
-            screen.blit(wookie, (0, 560))
-            screen.blit(skywalker, (0, 700))
-
+        # Initiates a basic turn of the game
+        # def start_turn():
 
         run = True
         while run:
@@ -208,6 +187,7 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
+
             blit_board()
             blit_players()
             keys = pygame.key.get_pressed()
@@ -217,6 +197,7 @@ class Game:
             clock.tick(60)
 
 
-
-game = Game(1)
+players = [Player('Waluigi', 'iron'), Player('Luigi', 'cat'), Player('Mario', 'boot'),
+           Player('Wario', 'hatstand'), Player('Toad', 'smartphone')]
+game = Game(players)
 game.main()
