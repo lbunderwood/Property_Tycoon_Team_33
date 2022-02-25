@@ -35,6 +35,34 @@ class TestPlayer(unittest.TestCase):
         self.assertEqual(console_out.getvalue(), "\nNot a valid player shape, check player info\n")
 
 
+# Test Case for testing the Dice class
+class TestCard(unittest.TestCase):
+    def test_something(self):
+        #TODO: replace dummy code
+        self.assertTrue(True)
+
+
+# Test Case for testing the Dice class
+class TestProperty(unittest.TestCase):
+    def test_something(self):
+        #TODO: replace dummy code
+        self.assertTrue(True)
+
+
+# Test Case for testing the Dice class
+class TestDice(unittest.TestCase):
+    def test_something(self):
+        #TODO: replace dummy code
+        self.assertTrue(True)
+
+
+# Test Case for testing the Dice class
+class TestGame(unittest.TestCase):
+    def test_something(self):
+        #TODO: replace dummy code
+        self.assertTrue(True)
+
+
 # popped this here just in case we want to have our test suite span multiple files in future
 if __name__ == '__main__':
     unittest.main()
