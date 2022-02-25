@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Project Asset folders (unzip the existing files instead)
+/graphics
+/fonts
+
+# Pycharm project folder
+\.idea
