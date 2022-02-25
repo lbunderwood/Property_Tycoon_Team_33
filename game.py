@@ -196,8 +196,9 @@ class Game:
             pygame.display.update()
             clock.tick(60)
 
-
-players = [Player('Waluigi', 'iron'), Player('Luigi', 'cat'), Player('Mario', 'boot'),
-           Player('Wario', 'hatstand'), Player('Toad', 'smartphone')]
-game = Game(players)
-game.main()
+# This if statement makes it so that when running the test suite, the game does not launch
+if __name__ == '__main__':
+    players = [Player('Waluigi', 'iron'), Player('Luigi', 'cat'), Player('Mario', 'boot'),
+               Player('Wario', 'hatstand'), Player('Toad', 'smartphone')]
+    game = Game(players)
+    game.main()
