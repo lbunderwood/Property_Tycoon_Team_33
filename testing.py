@@ -12,7 +12,7 @@ import sys
 # Test case for testing the player class
 class TestPlayer(unittest.TestCase):
     # Checks that all the proper player pieces are possible
-    # and names and shapes are assigned correctly
+    # and all variables are assigned correctly
     def test_player_init_valid(self):
         player_pieces = ["boot", "ship", "hatstand", "smartphone", "cat", "iron"]
         idx = 0
@@ -24,6 +24,7 @@ class TestPlayer(unittest.TestCase):
             self.assertEqual(player.properties, {})
             self.assertTrue(player.position[0] == 790 or 860)
             self.assertTrue(player.position[1] == 790 or 835 or 870)
+            self.assertEqual(player.image.get_size(), (24, 24))
             idx += 1
 
     # Tests error handling for invalid piece shape
