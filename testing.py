@@ -83,7 +83,7 @@ class TestDice(unittest.TestCase):
         results = numpy.zeros_like(tests)
         for i in tests:
             result = die.roll()
-            self.assertTrue(1 <= result <= 6)
+            self.assertIn(result, range(1, 7))
             results[i] = result
 
         count = numpy.bincount(results)
