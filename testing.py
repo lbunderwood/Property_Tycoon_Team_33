@@ -7,9 +7,10 @@ from game import *
 import unittest
 import io
 import sys
+import numpy
 
 
-# Test case for testing the player class
+# Test case for testing the Player class
 class TestPlayer(unittest.TestCase):
     # Checks that all the proper player pieces are possible
     # and all variables are assigned correctly
@@ -42,7 +43,7 @@ class TestPlayer(unittest.TestCase):
         sys.stdout = sys.__stdout__
 
 
-# Test Case for testing the Dice class
+# Test Case for testing the Card class
 class TestCard(unittest.TestCase):
     # Tests that initialization of values works
     def test_card_init(self):
@@ -56,7 +57,7 @@ class TestCard(unittest.TestCase):
                 self.assertEqual(card.description, description)
 
 
-# Test Case for testing the Dice class
+# Test Case for testing the Property class
 class TestProperty(unittest.TestCase):
     def test_property_init(self):
         names = ["brighton", "falmer", "portslade"]
@@ -84,12 +85,25 @@ class TestProperty(unittest.TestCase):
 
 # Test Case for testing the Dice class
 class TestDice(unittest.TestCase):
-    def test_dice_init(self):
-        #TODO: replace dummy code
-        self.assertTrue(True)
+
+    # tests that die always rolls between 1 and 6, and has fairly uniform distribution
+    def test_dice_roll(self):
+        die = Dice()
+        test_size = 1000
+        tests = range(test_size)
+        results = numpy.zeros_like(tests)
+        for i in tests:
+            result = die.roll()
+            self.assertTrue(1 <= result <= 6)
+            results[i] = result
+
+        count = numpy.bincount(results)
+        for i in range(1, 7):
+            # dice must roll each number between 1/12 - 3/12 of the time
+            self.assertAlmostEqual(test_size/6, count[i], delta=test_size/(6*2))
 
 
-# Test Case for testing the Dice class
+# Test Case for testing the Game class
 class TestGame(unittest.TestCase):
     def test_game_init(self):
         #TODO: replace dummy code
