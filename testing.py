@@ -59,8 +59,27 @@ class TestCard(unittest.TestCase):
 # Test Case for testing the Dice class
 class TestProperty(unittest.TestCase):
     def test_property_init(self):
-        #TODO: replace dummy code
-        self.assertTrue(True)
+        names = ["brighton", "falmer", "portslade"]
+        prices = [0, 100, 200, 500]
+        positions = [0, 420, 770]
+        groups = ["utility", "station", "orange"]
+        rents = [0, 20, 100]
+        sizes = [(140, 71), (71, 140)]
+
+        for name in names:
+            for price in prices:
+                for propx in positions:
+                    for propy in positions:
+                        for group in groups:
+                            for rent in rents:
+                                image = pygame.image.load("graphics/"+name+".png")
+                                prop = Property(name, price, (propx, propy), group, rent, image)
+                                self.assertEqual(prop.name, name)
+                                self.assertEqual(prop.price, price)
+                                self.assertEqual(prop.position, (propx, propy))
+                                self.assertEqual(prop.colour, group)
+                                self.assertEqual(prop.rent, rent)
+                                self.assertTrue(prop.image.get_size() == sizes[0] or sizes[1])
 
 
 # Test Case for testing the Dice class
