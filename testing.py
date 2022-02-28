@@ -58,22 +58,33 @@ class TestCard(unittest.TestCase):
 # Test Case for testing the Dice class
 class TestProperty(unittest.TestCase):
     def test_property_init(self):
-        #TODO: replace dummy code
-        self.assertTrue(True)
+        name, price, position, colour, rent, image = "test name", 5, 10, "red", 1000, "img"
+        prop = Property(name, price, position, colour, rent, image)
+        self.assertEqual(prop.name, name)
+        self.assertEqual(prop.price, price)
+        self.assertEqual(prop.position, position)
+        self.assertEqual(prop.colour, colour)
+        self.assertEqual(prop.rent, rent)
+        self.assertEqual(prop.image, image)
+        self.assertFalse(prop.mortgaged)
+        self.assertEqual(prop.owner, "")
 
 
 # Test Case for testing the Dice class
 class TestDice(unittest.TestCase):
     def test_dice_init(self):
-        #TODO: replace dummy code
-        self.assertTrue(True)
+        dice = Dice()
+        for i in range(1000):
+            self.assertIn(dice.roll(), [1, 2, 3, 4, 5, 6])
 
 
 # Test Case for testing the Dice class
 class TestGame(unittest.TestCase):
     def test_game_init(self):
-        #TODO: replace dummy code
-        self.assertTrue(True)
+        _players = [Player('Waluigi', 'iron'), Player('Luigi', 'cat'), Player('Mario', 'boot'),
+                    Player('Wario', 'hatstand'), Player('Toad', 'smartphone')]
+        _game = Game(_players)
+        self.assertEqual(_game.players, _players)
 
 
 # popped this here just in case we want to have our test suite span multiple files in future
