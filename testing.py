@@ -60,27 +60,16 @@ class TestCard(unittest.TestCase):
 # Test Case for testing the Property class
 class TestProperty(unittest.TestCase):
     def test_property_init(self):
-        names = ["brighton", "falmer", "portslade"]
-        prices = [0, 100, 200, 500]
-        positions = [0, 420, 770]
-        groups = ["utility", "station", "orange"]
-        rents = [0, 20, 100]
-        sizes = [(140, 71), (71, 140)]
-
-        for name in names:
-            for price in prices:
-                for propx in positions:
-                    for propy in positions:
-                        for group in groups:
-                            for rent in rents:
-                                image = pygame.image.load("graphics/"+name+".png")
-                                prop = Property(name, price, (propx, propy), group, rent, image)
-                                self.assertEqual(prop.name, name)
-                                self.assertEqual(prop.price, price)
-                                self.assertEqual(prop.position, (propx, propy))
-                                self.assertEqual(prop.colour, group)
-                                self.assertEqual(prop.rent, rent)
-                                self.assertTrue(prop.image.get_size() == sizes[0] or sizes[1])
+        name, price, position, colour, rent, image = "test name", 5, 10, "red", 1000, "img"
+        prop = Property(name, price, position, colour, rent, image)
+        self.assertEqual(prop.name, name)
+        self.assertEqual(prop.price, price)
+        self.assertEqual(prop.position, position)
+        self.assertEqual(prop.colour, colour)
+        self.assertEqual(prop.rent, rent)
+        self.assertEqual(prop.image, image)
+        self.assertFalse(prop.mortgaged)
+        self.assertEqual(prop.owner, "")
 
 
 # Test Case for testing the Dice class
@@ -106,8 +95,10 @@ class TestDice(unittest.TestCase):
 # Test Case for testing the Game class
 class TestGame(unittest.TestCase):
     def test_game_init(self):
-        #TODO: replace dummy code
-        self.assertTrue(True)
+        _players = [Player('Waluigi', 'iron'), Player('Luigi', 'cat'), Player('Mario', 'boot'),
+                    Player('Wario', 'hatstand'), Player('Toad', 'smartphone')]
+        _game = Game(_players)
+        self.assertEqual(_game.players, _players)
 
 
 # popped this here just in case we want to have our test suite span multiple files in future
