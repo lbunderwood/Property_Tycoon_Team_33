@@ -16,8 +16,7 @@ os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x, y)
 
 
 class Player:
-    def __init__(self, name, shape):
-        self.name = name
+    def __init__(self, shape):
         self.balance = 1500
         self.properties = {}
         self.shape = shape
@@ -53,14 +52,12 @@ class Card:
 
 
 class Property:
-    def __init__(self, name, price, position, colour, rent, image):
-        self.name = name
+    def __init__(self, price, position, colour, rent, image):
         self.price = price
         self.position = position
         self.colour = colour
         self.rent = rent
         self.owner = ''
-        self.rent = 0
         self.mortgaged = False
         self.image = image
 
@@ -82,14 +79,14 @@ class Game:
         pygame.display.set_caption("Property Tycoon")
 
         # CREATE BOARD SECTIONS
+
+        # NON INTERACTIVE PIECES
         centre = pygame.Surface((630, 630))
         centre.fill('White')
-
         # Text
         title_font = pygame.font.Font('fonts/monoton.ttf', 45)
         centre_text = title_font.render('Property     Tycoon', True, 'Black')
         centre_text_rect = centre_text.get_rect(center=(455, 455))
-
         # Card Stacks
         opportunityCards = pygame.image.load('graphics/opportunitycards.png')
         potluckCards = pygame.image.load('graphics/potluckcards.png')
@@ -102,9 +99,9 @@ class Game:
         cat = pygame.image.load('graphics/cat.png')
 
         # Corners
-        free_parking = pygame.image.load('graphics/free parking.png')
+        free_parking = pygame.image.load('graphics/free_parking.png')
         go = pygame.image.load('graphics/go.png')
-        go_to_jail = pygame.image.load('graphics/go to jail.png')
+        go_to_jail = pygame.image.load('graphics/go_to_jail.png')
         jail = pygame.image.load('graphics/jail.png')
 
         # Tax Spaces
@@ -117,35 +114,51 @@ class Game:
         potluckH = pygame.image.load('graphics/potluckH.png')
         potluckV = pygame.image.load('graphics/potluckV.png')
 
-        # PROPERTIES (PRICE, POSITION, GROUP, RENT, IMAGE)
-        properties = [Property('brighton', 200, (420, 770), 'station', 25, pygame.image.load('graphics/brighton.png')),
-                      Property('falmer', 200, (420, 0), 'station', 25, pygame.image.load('graphics/falmer.png')),
-                      Property('portslade', 200, (770, 420), 'station', 25, pygame.image.load('graphics/portslade.png')),
-                      Property('hove', 200, (0, 420), 'station', 25, pygame.image.load('graphics/hove.png')),
-                      Property('edison', 150, (630, 0), 'utility', 0, pygame.image.load('graphics/edison.png')),
-                      Property('tesla', 150, (0, 630), 'utility', 0, pygame.image.load('graphics/tesla.png')),
-                      Property('broyles', 200, (0, 140), 'orange', 16, pygame.image.load('graphics/broyles.png')),
-                      Property('dunham', 180, (0, 210), 'orange', 14, pygame.image.load('graphics/dunham.png')),
-                      Property('bishop', 180, (0, 350), 'orange', 14, pygame.image.load('graphics/bishop.png')),
-                      Property('rey', 160, (0, 490), 'purple', 12, pygame.image.load('graphics/rey.png')),
-                      Property('wookie', 140, (0, 560), 'purple', 10, pygame.image.load('graphics/wookie.png')),
-                      Property('skywalker', 140, (0, 700), 'purple', 10, pygame.image.load('graphics/skywalker.png')),
-                      Property('hanxin', 240, (350, 0), 'red', 20, pygame.image.load('graphics/hanxin.png')),
-                      Property('mulan', 220, (280, 0), 'red', 18, pygame.image.load('graphics/mulan.png')),
-                      Property('yuefei', 220, (140, 0), 'red', 18, pygame.image.load('graphics/yuefei.png')),
-                      Property('crusher', 280, (700, 0), 'yellow', 22, pygame.image.load('graphics/crusher.png')),
-                      Property('picard', 260, (560, 0), 'yellow', 22, pygame.image.load('graphics/picard.png')),
-                      Property('shatner', 260, (490, 0), 'yellow', 22, pygame.image.load('graphics/shatner.png')),
-                      Property('ibis', 320, (770, 350), 'green', 28, pygame.image.load('graphics/ibis.png')),
-                      Property('ghengis', 300, (770, 210), 'green', 26, pygame.image.load('graphics/ghengis.png')),
-                      Property('sirat', 300, (770, 140), 'green', 26, pygame.image.load('graphics/sirat.png')),
-                      Property('turing', 400, (770, 700), 'dark blue', 50, pygame.image.load('graphics/turing.png')),
-                      Property('james', 350, (770, 560), 'dark blue', 35, pygame.image.load('graphics/james.png')),
-                      Property('gangsters', 60, (560, 770), 'brown', 4, pygame.image.load('graphics/gangsters.png')),
-                      Property('creek', 60, (700, 770), 'brown', 2, pygame.image.load('graphics/creek.png')),
-                      Property('granger', 120, (140, 770), 'light blue', 8, pygame.image.load('graphics/granger.png')),
-                      Property('potter', 100, (210, 770), 'light blue', 6, pygame.image.load('graphics/potter.png')),
-                      Property('angels', 100, (350, 770), 'light blue', 6, pygame.image.load('graphics/angels.png'))]
+        # PROPERTIES (NAME, PRICE, POSITION, GROUP, RENT, IMAGE)
+        properties = {
+            'brighton': Property(200, (420, 770), 'station', 25, pygame.image.load('graphics/brighton.png')),
+            'falmer': Property(200, (420, 0), 'station', 25, pygame.image.load('graphics/falmer.png')),
+            'portslade': Property(200, (770, 420), 'station', 25, pygame.image.load('graphics/portslade.png')),
+            'hove': Property(200, (0, 420), 'station', 25, pygame.image.load('graphics/hove.png')),
+            'edison': Property(150, (630, 0), 'utility', 0, pygame.image.load('graphics/edison.png')),
+            'tesla': Property(150, (0, 630), 'utility', 0, pygame.image.load('graphics/tesla.png')),
+            'broyles': Property(200, (0, 140), 'orange', 16, pygame.image.load('graphics/broyles.png')),
+            'dunham': Property(180, (0, 210), 'orange', 14, pygame.image.load('graphics/dunham.png')),
+            'bishop': Property(180, (0, 350), 'orange', 14, pygame.image.load('graphics/bishop.png')),
+            'rey': Property(160, (0, 490), 'purple', 12, pygame.image.load('graphics/rey.png')),
+            'wookie': Property(140, (0, 560), 'purple', 10, pygame.image.load('graphics/wookie.png')),
+            'skywalker': Property(140, (0, 700), 'purple', 10, pygame.image.load('graphics/skywalker.png')),
+            'hanxin': Property(240, (350, 0), 'red', 20, pygame.image.load('graphics/hanxin.png')),
+            'mulan': Property(220, (280, 0), 'red', 18, pygame.image.load('graphics/mulan.png')),
+            'yuefei': Property(220, (140, 0), 'red', 18, pygame.image.load('graphics/yuefei.png')),
+            'crusher': Property(280, (700, 0), 'yellow', 22, pygame.image.load('graphics/crusher.png')),
+            'picard': Property(260, (560, 0), 'yellow', 22, pygame.image.load('graphics/picard.png')),
+            'shatner': Property(260, (490, 0), 'yellow', 22, pygame.image.load('graphics/shatner.png')),
+            'ibis': Property(320, (770, 350), 'green', 28, pygame.image.load('graphics/ibis.png')),
+            'ghengis': Property(300, (770, 210), 'green', 26, pygame.image.load('graphics/ghengis.png')),
+            'sirat': Property(300, (770, 140), 'green', 26, pygame.image.load('graphics/sirat.png')),
+            'turing': Property(400, (770, 700), 'dark blue', 50, pygame.image.load('graphics/turing.png')),
+            'james': Property(350, (770, 560), 'dark blue', 35, pygame.image.load('graphics/james.png')),
+            'gangsters': Property(60, (560, 770), 'brown', 4, pygame.image.load('graphics/gangsters.png')),
+            'creek': Property(60, (700, 770), 'brown', 2, pygame.image.load('graphics/creek.png')),
+            'granger': Property(120, (140, 770), 'light blue', 8, pygame.image.load('graphics/granger.png')),
+            'potter': Property(100, (210, 770), 'light blue', 6, pygame.image.load('graphics/potter.png')),
+            'angels': Property(100, (350, 770), 'light blue', 6, pygame.image.load('graphics/angels.png'))
+        }
+
+        # turn function displays a prompt popup, how do I make the prompt disappear after keypress?
+        def turn():
+            popup = pygame.Surface((500, 200))
+            popup.fill('Black')
+            screen.blit(popup, (205, 350))
+            popup_font = pygame.font.Font(None, 30)
+            popup_text = popup_font.render('Roll Dice ----> SPACE', True, 'White')
+            popup_text_rect = popup_text.get_rect(center=(455, 400))
+            screen.blit(popup_text, popup_text_rect)
+            pygame.display.update()
+
+        def move_player(player, property):
+            player.position = property.position
 
         # Updates and displays player pieces
         def blit_players():
@@ -175,30 +188,36 @@ class Game:
             # place tax pieces
             screen.blit(incometax, (490, 770))
             screen.blit(supertax, (770, 630))
-            for item in properties:
+            for item in properties.values():
                 screen.blit(item.image, item.position)
 
-        # Initiates a basic turn of the game
-        # def start_turn():
-
         run = True
+        blit_board()
+        pygame.display.update()
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        print('Space')
+                        #turn()
+                        move_player(players.get('Mario'), properties.get('wookie'))
+                        blit_players()
+                        pygame.display.update()
+                # draw & update
+                #clock.tick(10)
 
-            blit_board()
-            blit_players()
-            keys = pygame.key.get_pressed()
-
-            # draw & update
-            pygame.display.update()
-            clock.tick(60)
 
 # This if statement makes it so that when running the test suite, the game does not launch
 if __name__ == '__main__':
-    players = [Player('Waluigi', 'iron'), Player('Luigi', 'cat'), Player('Mario', 'boot'),
-               Player('Wario', 'hatstand'), Player('Toad', 'smartphone')]
-    game = Game(players)
+    players = {
+        'Dan': Player('iron'),
+        'Mario': Player('cat'),
+        'Luigi': Player('boot'),
+        'Wario': Player('hatstand'),
+        'Waluigi': Player('smartphone')
+    }
+    game = Game(players.values())
     game.main()
