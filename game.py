@@ -114,7 +114,7 @@ class Game:
         potluckH = pygame.image.load('graphics/potluckH.png')
         potluckV = pygame.image.load('graphics/potluckV.png')
 
-        # PROPERTIES (NAME, PRICE, POSITION, GROUP, RENT, IMAGE)
+        # PROPERTIES (PRICE, POSITION, GROUP, RENT, IMAGE)
         properties = {
             'brighton': Property(200, (420, 770), 'station', 25, pygame.image.load('graphics/brighton.png')),
             'falmer': Property(200, (420, 0), 'station', 25, pygame.image.load('graphics/falmer.png')),
