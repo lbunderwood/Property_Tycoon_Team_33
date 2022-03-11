@@ -18,8 +18,7 @@ class TestPlayer(unittest.TestCase):
         player_pieces = ["boot", "ship", "hatstand", "smartphone", "cat", "iron"]
         idx = 0
         for piece in player_pieces:
-            player = Player("Player " + str(idx), piece)
-            self.assertEqual(player.name, "Player " + str(idx))
+            player = Player(piece)
             self.assertEqual(player.shape, piece)
             self.assertEqual(player.balance, 1500)
             self.assertEqual(player.properties, {})
@@ -36,7 +35,7 @@ class TestPlayer(unittest.TestCase):
             console_out = io.StringIO()
             sys.stdout = console_out
             try:
-                self.assertRaises(SystemExit, Player("Name", piece))
+                self.assertRaises(SystemExit, Player(piece))
             except SystemExit:
                 pass
             self.assertEqual(console_out.getvalue(), "\nNot a valid player shape, check player info\n")
@@ -60,9 +59,8 @@ class TestCard(unittest.TestCase):
 # Test Case for testing the Property class
 class TestProperty(unittest.TestCase):
     def test_property_init(self):
-        name, price, position, colour, rent, image = "test name", 5, 10, "red", 1000, "img"
-        prop = Property(name, price, position, colour, rent, image)
-        self.assertEqual(prop.name, name)
+        price, position, colour, rent, image = 5, 10, "red", 1000, "img"
+        prop = Property(price, position, colour, rent, image)
         self.assertEqual(prop.price, price)
         self.assertEqual(prop.position, position)
         self.assertEqual(prop.colour, colour)
@@ -95,8 +93,8 @@ class TestDice(unittest.TestCase):
 # Test Case for testing the Game class
 class TestGame(unittest.TestCase):
     def test_game_init(self):
-        _players = [Player('Waluigi', 'iron'), Player('Luigi', 'cat'), Player('Mario', 'boot'),
-                    Player('Wario', 'hatstand'), Player('Toad', 'smartphone')]
+        _players = [Player('iron'), Player('cat'), Player('boot'),
+                    Player('hatstand'), Player('smartphone')]
         _game = Game(_players)
         self.assertEqual(_game.players, _players)
 
