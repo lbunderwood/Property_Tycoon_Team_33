@@ -20,35 +20,42 @@ class Player:
         self.balance = 1500
         self.properties = {}
         self.shape = shape
+        self.position = (770, 770)
         if self.shape == 'boot':
-            self.position = (790, 790)
+            # self.position = (790, 790)
             self.image = pygame.image.load('graphics/boot.png')
         elif self.shape == 'ship':
-            self.position = (860, 790)
+            # self.position = (860, 790)
             self.image = pygame.image.load('graphics/ship.png')
         elif self.shape == 'hatstand':
-            self.position = (860, 835)
+            # self.position = (860, 835)
             self.image = pygame.image.load('graphics/hatstand.png')
         elif self.shape == 'smartphone':
-            self.position = (790, 870)
+            # self.position = (790, 870)
             self.image = pygame.image.load('graphics/smartphone.png')
         elif self.shape == 'cat':
-            self.position = (860, 870)
+            # self.position = (860, 870)
             self.image = pygame.image.load('graphics/cat.png')
         elif self.shape == 'iron':
-            self.position = (790, 835)
+            # self.position = (790, 835)
             self.image = pygame.image.load('graphics/iron.png')
         else:
             print("\nNot a valid player shape, check player info")
             pygame.quit()
             exit()
-    # def move(self):
 
 
 class Card:
-    def __init__(self, card_type, description):
-        self.card_type = card_type
+    def __init__(self, card_type, description, image):
+        self.card_type = card_type  # 0 is opportunity, 1 is other
         self.description = description
+
+
+# class separate for just tracking positions
+class Tile:
+    def __init__(self, position, image):
+        self.position = position
+        self.image = image
 
 
 class Property:
@@ -63,8 +70,20 @@ class Property:
 
 
 class Dice:
-    def roll(self):
-        return random.randint(1, 6)
+    def __init__(self):
+        self.number = random.randint(1, 6)
+        if self.number == 1:
+            self.image = pygame.image.load('graphics/dice_1.png')
+        elif self.number == 2:
+            self.image = pygame.image.load('graphics/dice_2.png')
+        elif self.number == 3:
+            self.image = pygame.image.load('graphics/dice_3.png')
+        elif self.number == 4:
+            self.image = pygame.image.load('graphics/dice_4.png')
+        elif self.number == 5:
+            self.image = pygame.image.load('graphics/dice_5.png')
+        elif self.number == 6:
+            self.image = pygame.image.load('graphics/dice_6.png')
 
 
 class Game:
@@ -91,28 +110,29 @@ class Game:
         opportunityCards = pygame.image.load('graphics/opportunitycards.png')
         potluckCards = pygame.image.load('graphics/potluckcards.png')
 
-        # Player pieces
-        smartphone = pygame.image.load('graphics/smartphone.png')
-        hatstand = pygame.image.load('graphics/hatstand.png')
-        ship = pygame.image.load('graphics/ship.png')
-        iron = pygame.image.load('graphics/iron.png')
-        cat = pygame.image.load('graphics/cat.png')
-
         # Corners
-        free_parking = pygame.image.load('graphics/free_parking.png')
-        go = pygame.image.load('graphics/go.png')
-        go_to_jail = pygame.image.load('graphics/go_to_jail.png')
-        jail = pygame.image.load('graphics/jail.png')
+        corners = {
+            'free_parking': Tile((0, 0), pygame.image.load('graphics/free_parking.png')),
+            'go': Tile((770, 770), pygame.image.load('graphics/go.png')),
+            'go_to_jail': Tile((770, 0), pygame.image.load('graphics/go_to_jail.png')),
+            'jail': Tile((0, 770), pygame.image.load('graphics/jail.png'))
+        }
 
-        # Tax Spaces
-        supertax = pygame.image.load('graphics/supertax.png')
-        incometax = pygame.image.load('graphics/incometax.png')
+        # Tax spaces
+        taxes = {
+            'supertax': Tile((770, 630), pygame.image.load('graphics/supertax.png')),
+            'incometax': Tile((490, 770), pygame.image.load('graphics/incometax.png'))
+        }
 
         # Card Spaces on Board
-        opportunityH = pygame.image.load('graphics/opportunityH.png')
-        opportunityV = pygame.image.load('graphics/opportunityV.png')
-        potluckH = pygame.image.load('graphics/potluckH.png')
-        potluckV = pygame.image.load('graphics/potluckV.png')
+        card_spaces = {
+            'opportunity1': Tile((770, 490), pygame.image.load('graphics/opportunityH.png')),
+            'opportunity2': Tile((210, 0), pygame.image.load('graphics/opportunityV.png')),
+            'opportunity3': Tile((280, 770), pygame.image.load('graphics/opportunityV.png')),
+            'potluck1': Tile((0, 280), pygame.image.load('graphics/potluckH.png')),
+            'potluck2': Tile((770, 280), pygame.image.load('graphics/potluckH.png')),
+            'potluck3': Tile((630, 770), pygame.image.load('graphics/potluckV.png'))
+        }
 
         # PROPERTIES (PRICE, POSITION, GROUP, RENT, IMAGE)
         properties = {
@@ -146,68 +166,100 @@ class Game:
             'angels': Property(100, (350, 770), 'light blue', 6, pygame.image.load('graphics/angels.png'))
         }
 
-        # turn function displays a prompt popup, how do I make the prompt disappear after keypress?
-        def turn():
-            popup = pygame.Surface((500, 200))
-            popup.fill('Black')
-            screen.blit(popup, (205, 350))
-            popup_font = pygame.font.Font(None, 30)
-            popup_text = popup_font.render('Roll Dice ----> SPACE', True, 'White')
-            popup_text_rect = popup_text.get_rect(center=(455, 400))
-            screen.blit(popup_text, popup_text_rect)
-            pygame.display.update()
+        # Get list of all tile positions to help move players around
+        tiles = [(770, 770), (770, 700), (770, 630), (770, 560), (770, 490), (770, 420), (770, 350), (770, 280),
+                 (770, 210), (770, 140), (770, 0), (700, 0), (630, 0), (560, 0), (490, 0), (350, 0), (280, 0), (210, 0),
+                 (140, 0), (0, 0), (0, 140), (0, 210), (0, 280), (0, 350), (0, 420), (0, 490), (0, 490), (0, 560),
+                 (0, 630), (0, 700), (0, 770), (140, 770), (210, 770), (280, 770), (350, 770), (420, 770), (490, 770),
+                 (560, 770), (630, 770), (700, 770), (770, 770)]
 
-        def move_player(player, property):
-            player.position = property.position
+        def move_x(player, spaces):
+            current = tiles.index(player.position)
+            destination_index = current + spaces
+
+            if destination_index > len(tiles) - 1:
+                destination_index -= len(tiles) - 1
+
+            player.position = tiles[destination_index]
+            print('current: ', destination_index)
 
         # Updates and displays player pieces
         def blit_players():
-            for player in self.players:
+            for player in self.players.values():
                 screen.blit(player.image, player.position)
+            pygame.display.update()
 
         # Updates and displays the static game board 60 times a second
         def blit_board():
             # place corners
-            screen.blit(free_parking, (0, 0))
-            screen.blit(go, (770, 770))
-            screen.blit(go_to_jail, (770, 0))
-            screen.blit(jail, (0, 770))
             screen.blit(centre, (140, 140))
+            for tile in corners.values():
+                screen.blit(tile.image, tile.position)
             # place title text
             screen.blit(centre_text, centre_text_rect)
             # place card stacks
-            screen.blit(opportunityCards, (150, 140))
-            screen.blit(potluckCards, (540, 550))
-            # place card action places
-            screen.blit(opportunityH, (770, 490))
-            screen.blit(opportunityV, (210, 0))
-            screen.blit(opportunityV, (280, 770))
-            screen.blit(potluckH, (0, 280))
-            screen.blit(potluckH, (770, 280))
-            screen.blit(potluckV, (630, 770))
+            for tile in card_spaces.values():
+                screen.blit(tile.image, tile.position)
+            # place tax tiles
+            for tile in taxes.values():
+                screen.blit(tile.image, tile.position)
             # place tax pieces
-            screen.blit(incometax, (490, 770))
-            screen.blit(supertax, (770, 630))
-            for item in properties.values():
-                screen.blit(item.image, item.position)
+            for tile in properties.values():
+                screen.blit(tile.image, tile.position)
+            pygame.display.update()
+
+        def update_board():
+            blit_board()
+            blit_players()
+
+        # turn function displays a prompt popup, how do I make the prompt disappear after keypress?
+        def turn():
+            popup = pygame.image.load('graphics/turn start.png')
+            screen.blit(popup, (250, 350))
+            pygame.display.update()
+
+        def roll():
+            dice1 = Dice()
+            dice2 = Dice()
+            screen.blit(dice1.image, (340, 550))
+            screen.blit(dice2.image, (455, 550))
+            pygame.display.update()
+            return dice1.number + dice2.number
 
         run = True
-        blit_board()
-        pygame.display.update()
+        update_board()
+        turn()
+
+        player_names = []
+        for name in players.keys():
+            player_names.append(name)
+        current_player = 0
+
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
-                if event.type == pygame.KEYDOWN:
+
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_SPACE]:
+                    dice_results = roll()
+
+                if event.type == pygame.KEYUP:
                     if event.key == pygame.K_SPACE:
-                        print('Space')
-                        #turn()
-                        move_player(players.get('Mario'), properties.get('wookie'))
-                        blit_players()
-                        pygame.display.update()
+                        if current_player == 5:
+                            current_player = 0
+                        move_x(players.get(player_names[current_player]), dice_results)
+                        current_player += 1
+                        print("Current Player: ", current_player)
+                        update_board()
+                """
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_SPACE:
+                """
+
                 # draw & update
-                #clock.tick(10)
+                clock.tick(60)
 
 
 # This if statement makes it so that when running the test suite, the game does not launch
@@ -219,5 +271,5 @@ if __name__ == '__main__':
         'Wario': Player('hatstand'),
         'Waluigi': Player('smartphone')
     }
-    game = Game(players.values())
+    game = Game(players)
     game.main()
