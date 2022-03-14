@@ -131,6 +131,7 @@ dmypy.json
 # Project Asset folders (unzip the existing files instead)
 /graphics
 /fonts
+/cards
 
 # Pycharm project folder
 \.idea

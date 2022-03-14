@@ -1,7 +1,9 @@
+import numpy
 import pygame
 import ctypes
 import os
 import random
+import csv
 from sys import exit
 
 WIDTH = HEIGHT = 910
@@ -44,11 +46,125 @@ class Player:
             exit()
     # def move(self):
 
+    def draw_card(self, stack):
+        card = stack.draw()
 
-class Card:
-    def __init__(self, card_type, description):
-        self.card_type = card_type
-        self.description = description
+        if card == "Bank pays you divided of £50":
+            self.balance += 50
+        elif card == "You have won a lip sync battle. Collect £100":
+            self.balance += 100
+        elif card == "Advance to Turing Heights":
+            # TODO: add movement
+            pass
+        elif card == "Advance to Han Xin Gardens. If you pass GO, collect £200":
+            # TODO: add movement
+            pass
+        elif card == "Fined £15 for speeding":
+            self.balance -= 15
+            # TODO: add payment to free parking
+        elif card == "Pay university fees of £150":
+            self.balance -= 150
+        elif card == "Take a trip to Hove station. If you pass GO collect £200":
+            # TODO: add movement
+            pass
+        elif card == "Loan matures, collect £150":
+            self.balance += 150
+        elif card == "You are assessed for repairs, £40/house, £115/hotel":
+            # TODO: add calculation, property class needs houses/hotels
+            pass
+        elif card == "Advance to GO":
+            # TODO: add movement
+            pass
+        elif card == "You are assessed for repairs, £25/house, £100/hotel":
+            # TODO: add calculation, property class needs houses/hotels
+            pass
+        elif card == "Go back 3 spaces":
+            # TODO: add movement
+            pass
+        elif card == "Advance to Skywalker Drive. If you pass GO collect £200":
+            # TODO: add movement
+            pass
+        elif card == "Go to jail. Do not pass GO, do not collect £200":
+            # TODO: add movement (and jail)
+            pass
+        elif card == "Drunk in charge of a hoverboard. Fine £30":
+            self.balance -= 30
+            # TODO: add payment to free parking
+        elif card == "Get out of jail free":
+            # TODO: add get out of jail free
+            pass
+        elif card == "You inherit £200":
+            self.balance += 200
+        elif card == "You have won 2nd prize in a beauty contest, collect £50":
+            self.balance += 50
+        elif card == "You are up the creek with no paddle - go back to the Old Creek":
+            # TODO: add movement
+            pass
+        elif card == "Student loan refund. Collect £20":
+            self.balance += 20
+        elif card == "Bank error in your favour. Collect £200":
+            self.balance += 200
+        elif card == "Pay bill for text books of £100":
+            self.balance -= 100
+        elif card == "Mega late night taxi bill pay £50":
+            self.balance -= 50
+        elif card == "Advance to go":
+            # TODO: add movement
+            pass
+        elif card == "From sale of Bitcoin you get £50":
+            self.balance += 50
+        elif card == "Bitcoin assets fall - pay off Bitcoin short fall":
+            self.balance -= 50
+        elif card == "Pay a £10 fine or take opportunity knocks":
+            # TODO: add interface for decision
+            # the tenner goes to free parking
+            pass
+        elif card == "Pay insurance fee of £50":
+            self.balance -= 50
+            # TODO: add payment to free parking
+        elif card == "Savings bond matures, collect £100":
+            self.balance += 100
+        elif card == "Go to jail. Do not pass GO, do not collect £200":
+            # TODO: add movement
+            pass
+        elif card == "Received interest on shares of £25":
+            self.balance += 25
+        elif card == "It's your birthday. Collect £10 from each player":
+            # TODO: add deduction from other players and way of knowing how many players
+            player_count = 4
+            self.balance += 10 * player_count
+            pass
+        else:
+            print("\nInvalid card description passed to Player.draw_card()")
+            pygame.quit()
+            exit()
+
+# for now, we will simply use strings as only the description is needed
+#class Card:
+#    def __init__(self, description):
+#        self.description = description
+
+
+class CardStack:
+    def __init__(self, card_type):
+        if card_type == "Opportunity Knocks":
+            self.cards = numpy.genfromtxt("cards/Opportunity_Knocks.txt", dtype=str, delimiter=';')
+            self.type = card_type
+        elif card_type == "Pot Luck":
+            self.cards = numpy.genfromtxt("cards/Pot_Luck.txt", dtype=str, delimiter=';')
+            self.type = card_type
+        else:
+            print("\nInvalid card type given to CardStack")
+            pygame.quit()
+            exit()
+
+    def shuffle(self):
+        random.shuffle(self.cards)
+
+    def draw(self):
+        card = self.cards[0]
+        self.cards = numpy.roll(self.cards, -1)
+        return card
 
 
 class Property:
