@@ -350,6 +350,9 @@ class Game:
             player_names.append(name)
         current_player = 0
 
+        potLuck = CardStack("Pot Luck")
+        opportunityKnocks = CardStack("Opportunity Knocks")
+
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
