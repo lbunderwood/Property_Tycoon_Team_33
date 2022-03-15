@@ -45,104 +45,126 @@ class Player:
             pygame.quit()
             exit()
 
+    # takes card stack as input, draws card, applies result of card, and returns pygame image object
     def draw_card(self, stack):
         card = stack.draw()
+        cardImage = "VAR INIT"
 
         if card == "Bank pays you divided of £50":
             self.balance += 50
+            cardImage = pygame.image.load('graphics/opportunity knocks 1.png')
         elif card == "You have won a lip sync battle. Collect £100":
             self.balance += 100
+            cardImage = pygame.image.load('graphics/opportunity knocks 2.png')
         elif card == "Advance to Turing Heights":
             # TODO: add movement
-            pass
+            cardImage = pygame.image.load('graphics/opportunity knocks 3.png')
         elif card == "Advance to Han Xin Gardens. If you pass GO, collect £200":
             # TODO: add movement
-            pass
+            cardImage = pygame.image.load('graphics/opportunity knocks 3(1).png')
         elif card == "Fined £15 for speeding":
             self.balance -= 15
             # TODO: add payment to free parking
+            cardImage = pygame.image.load('graphics/opportunity knocks 4.png')
         elif card == "Pay university fees of £150":
             self.balance -= 150
+            cardImage = pygame.image.load('graphics/opportunity knocks 5.png')
         elif card == "Take a trip to Hove station. If you pass GO collect £200":
             # TODO: add movement
-            pass
+            cardImage = pygame.image.load('graphics/opportunity knocks 6.png')
         elif card == "Loan matures, collect £150":
             self.balance += 150
+            cardImage = pygame.image.load('graphics/opportunity knocks 7.png')
         elif card == "You are assessed for repairs, £40/house, £115/hotel":
             # TODO: add calculation, property class needs houses/hotels
-            pass
+            cardImage = pygame.image.load('graphics/opportunity knocks 8.png')
         elif card == "Advance to GO":
             # TODO: add movement
-            pass
+            cardImage = pygame.image.load('graphics/opportunity knocks 9.png')
         elif card == "You are assessed for repairs, £25/house, £100/hotel":
             # TODO: add calculation, property class needs houses/hotels
-            pass
+            cardImage = pygame.image.load('graphics/opportunity knocks 10.png')
         elif card == "Go back 3 spaces":
             # TODO: add movement
-            pass
+            cardImage = pygame.image.load('graphics/opportunity knocks 11.png')
         elif card == "Advance to Skywalker Drive. If you pass GO collect £200":
             # TODO: add movement
-            pass
+            cardImage = pygame.image.load('graphics/opportunity knocks 12.png')
         elif card == "Go to jail. Do not pass GO, do not collect £200":
             # TODO: add movement (and jail)
-            pass
+            cardImage = pygame.image.load('graphics/opportunity knocks 13.png')
         elif card == "Drunk in charge of a hoverboard. Fine £30":
             self.balance -= 30
-            # TODO: add payment to free parking
+            cardImage = pygame.image.load('graphics/opportunity knocks 14.png')
         elif card == "Get out of jail free":
             # TODO: add get out of jail free
-            pass
+            if stack.type == "Opportunity Knocks":
+                cardImage = pygame.image.load('graphics/opportunity knocks 15.png')
+            else:
+                cardImage = pygame.image.load('graphics/pot luck 17.png')
         elif card == "You inherit £200":
             self.balance += 200
+            cardImage = pygame.image.load('graphics/pot luck 1.png')
         elif card == "You have won 2nd prize in a beauty contest, collect £50":
             self.balance += 50
+            cardImage = pygame.image.load('graphics/pot luck 2.png')
         elif card == "You are up the creek with no paddle - go back to the Old Creek":
             # TODO: add movement
-            pass
+            cardImage = pygame.image.load('graphics/pot luck 3.png')
         elif card == "Student loan refund. Collect £20":
             self.balance += 20
+            cardImage = pygame.image.load('graphics/pot luck 4.png')
         elif card == "Bank error in your favour. Collect £200":
             self.balance += 200
+            cardImage = pygame.image.load('graphics/pot luck 5.png')
         elif card == "Pay bill for text books of £100":
             self.balance -= 100
+            cardImage = pygame.image.load('graphics/pot luck 6.png')
         elif card == "Mega late night taxi bill pay £50":
             self.balance -= 50
+            cardImage = pygame.image.load('graphics/pot luck 7.png')
         elif card == "Advance to go":
             # TODO: add movement
-            pass
+            cardImage = pygame.image.load('graphics/pot luck 8.png')
         elif card == "From sale of Bitcoin you get £50":
             self.balance += 50
+            cardImage = pygame.image.load('graphics/pot luck 9.png')
         elif card == "Bitcoin assets fall - pay off Bitcoin short fall":
             self.balance -= 50
+            cardImage = pygame.image.load('graphics/pot luck 10.png')
         elif card == "Pay a £10 fine or take opportunity knocks":
             # TODO: add interface for decision
             # the tenner goes to free parking
-            pass
+            cardImage = pygame.image.load('graphics/pot luck 11.png')
         elif card == "Pay insurance fee of £50":
             self.balance -= 50
-            # TODO: add payment to free parking
+            cardImage = pygame.image.load('graphics/pot luck 12.png')
         elif card == "Savings bond matures, collect £100":
             self.balance += 100
+            cardImage = pygame.image.load('graphics/pot luck 13.png')
         elif card == "Go to jail. Do not pass GO, do not collect £200":
             # TODO: add movement
-            pass
+            cardImage = pygame.image.load('graphics/pot luck 14.png')
         elif card == "Received interest on shares of £25":
             self.balance += 25
+            cardImage = pygame.image.load('graphics/pot luck 15.png')
         elif card == "It's your birthday. Collect £10 from each player":
             # TODO: add deduction from other players and way of knowing how many players
             player_count = 4
             self.balance += 10 * player_count
-            pass
+            cardImage = pygame.image.load('graphics/pot luck 16.png')
         else:
-            print("\nInvalid card description passed to Player.draw_card()")
+            print("\nInvalid card description \""+card+"\" passed to Player.draw_card()")
             pygame.quit()
             exit()
+
+        return cardImage
 
 
 class CardStack:
     def __init__(self, card_type):
         if not (card_type == "Opportunity Knocks" or card_type == "Pot Luck"):
-            print("\nInvalid card type given to CardStack")
+            print("\nInvalid card type \""+card_type+"\" given to CardStack")
             pygame.quit()
             exit()
 
@@ -342,35 +364,59 @@ class Game:
         for name in players.keys():
             player_names.append(name)
         current_player = 0
+        turn_state = "start"
 
         potLuck = CardStack("Pot Luck")
         opportunityKnocks = CardStack("Opportunity Knocks")
+        potLuck.shuffle()
+        opportunityKnocks.shuffle()
 
         while run:
+            player = players.get(player_names[current_player])
+
             for event in pygame.event.get():
+
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
 
                 keys = pygame.key.get_pressed()
-                if keys[pygame.K_SPACE]:
+                if keys[pygame.K_SPACE] and turn_state == "start":
                     dice_results = roll()
 
                 if event.type == pygame.KEYUP:
-                    if event.key == pygame.K_SPACE:
+                    if event.key == pygame.K_SPACE and turn_state == "start":
+                        move_x(player, dice_results)
+                        turn_state = "moved"
+                        update_board()
+
+                    elif event.key == pygame.K_SPACE and turn_state == "space action":
+                        current_player += 1
                         if current_player == 5:
                             current_player = 0
-                        move_x(players.get(player_names[current_player]), dice_results)
-                        current_player += 1
                         print("Current Player: ", current_player)
                         update_board()
+                        turn_state = "start"
                 """
                 elif event.type == pygame.KEYUP:
                     if event.key == pygame.K_SPACE:
                 """
+            # draw & update
+            clock.tick(60)
 
-                # draw & update
-                clock.tick(60)
+            # check if player has landed on card space
+            if turn_state == "moved":
+                for space in card_spaces:
+                    if card_spaces[space].position == player.position:
+                        if "opportunity" in space:
+                            card_img = player.draw_card(opportunityKnocks)
+                        elif "potluck" in space:
+                            card_img = player.draw_card(potLuck)
+
+                        screen.blit(card_img, (250, 350))
+                        pygame.display.update()
+
+                turn_state = "space action"
 
 
 # This if statement makes it so that when running the test suite, the game does not launch
