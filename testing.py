@@ -47,14 +47,14 @@ class TestCardStack(unittest.TestCase):
     # Tests that initialization of values works
     def test_cardstack_init_valid(self):
         potLuck = CardStack("Pot Luck")
-        potLuckCards = numpy.genfromtxt("cards/Pot_Luck.txt", dtype=str, delimiter=';')
+        potLuckCards = numpy.genfromtxt("cards/Pot_Luck.txt", dtype=str, delimiter=';')[0:, 0]
 
         self.assertEqual(potLuck.type, "Pot Luck")
         for card in potLuck.cards:
             self.assertIn(card, potLuckCards)
 
         opportunityKnocks = CardStack("Opportunity Knocks")
-        opportunityCards = numpy.genfromtxt("cards/Opportunity_Knocks.txt", dtype=str, delimiter=';')
+        opportunityCards = numpy.genfromtxt("cards/Opportunity_Knocks.txt", dtype=str, delimiter=';')[0:, 0]
 
         self.assertEqual(opportunityKnocks.type, "Opportunity Knocks")
         for card in opportunityKnocks.cards:
@@ -88,7 +88,11 @@ class TestCardStack(unittest.TestCase):
         self.assertTrue(shuffled)
 
     def test_cardstack_draw(self):
-        pass
+        cardStack = CardStack("Opportunity Knocks")
+        cardArray = numpy.genfromtxt("cards/Opportunity_Knocks.txt", dtype=str, delimiter=';')[0:, 0]
+
+        for card in cardArray:
+            self.assertEqual(card, cardStack.draw())
 
 
 # Test Case for testing the Property class
