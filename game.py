@@ -413,7 +413,7 @@ class Game:
                         elif "potluck" in space:
                             card_img = player.draw_card(potLuck)
 
-                        screen.blit(card_img, (250, 350))
+                        screen.blit(card_img, (278, 366))
                         pygame.display.update()
 
                 turn_state = "space action"
