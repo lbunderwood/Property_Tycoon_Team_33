@@ -42,18 +42,53 @@ class TestPlayer(unittest.TestCase):
         sys.stdout = sys.__stdout__
 
 
-# Test Case for testing the Card class
-class TestCard(unittest.TestCase):
+# Test Case for testing the CardStack class
+class TestCardStack(unittest.TestCase):
     # Tests that initialization of values works
-    def test_card_init(self):
-        types = ["Pot Luck", "Opportunity Knocks"]
-        descriptions = ["You are up the creek with no paddle - go back to the Old Creek", "You inherit £200",
-                        "Bank pays you divided of £50", "Advance to Turing Heights"]
-        for card_type in types:
-            for description in descriptions:
-                card = Card(card_type, description)
-                self.assertEqual(card.card_type, card_type)
-                self.assertEqual(card.description, description)
+    def test_cardstack_init_valid(self):
+        potLuck = CardStack("Pot Luck")
+        potLuckCards = numpy.genfromtxt("cards/Pot_Luck.txt", dtype=str, delimiter=';')
+
+        self.assertEqual(potLuck.type, "Pot Luck")
+        for card in potLuck.cards:
+            self.assertIn(card, potLuckCards)
+
+        opportunityKnocks = CardStack("Opportunity Knocks")
+        opportunityCards = numpy.genfromtxt("cards/Opportunity_Knocks.txt", dtype=str, delimiter=';')
+
+        self.assertEqual(opportunityKnocks.type, "Opportunity Knocks")
+        for card in opportunityKnocks.cards:
+            self.assertIn(card, opportunityCards)
+
+    def test_cardstack_init_error(self):
+        invalid_types = ["invalid", "", "©"]
+        for card_type in invalid_types:
+            console_out = io.StringIO()
+            sys.stdout = console_out
+            try:
+                self.assertRaises(SystemExit, CardStack(card_type))
+            except SystemExit:
+                pass
+            self.assertEqual(console_out.getvalue(), "\nInvalid card type given to CardStack\n")
+        sys.stdout = sys.__stdout__
+
+    def test_cardstack_shuffle(self):
+        cards = CardStack("Pot Luck")
+        cards.shuffle()
+        shuffled = False
+        i = 0
+
+        # check that we have all the cards and they are not in the same order
+        potLuckCards = numpy.genfromtxt("cards/Pot_Luck.txt", dtype=str, delimiter=';')[0:, 0]
+        for card in cards.cards:
+            self.assertIn(card, potLuckCards)
+            if card != potLuckCards[i]:
+                shuffled = True
+            i += 1
+        self.assertTrue(shuffled)
+
+    def test_cardstack_draw(self):
+        pass
 
 
 # Test Case for testing the Property class
@@ -74,13 +109,13 @@ class TestProperty(unittest.TestCase):
 class TestDice(unittest.TestCase):
 
     # tests that die always rolls between 1 and 6, and has fairly uniform distribution
-    def test_dice_roll(self):
-        die = Dice()
+    def test_dice_init(self):
         test_size = 1000
         tests = range(test_size)
         results = numpy.zeros_like(tests)
         for i in tests:
-            result = die.roll()
+            die = Dice()
+            result = die.number
             self.assertIn(result, range(1, 7))
             results[i] = result
 

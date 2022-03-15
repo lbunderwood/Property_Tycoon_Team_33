@@ -138,24 +138,17 @@ class Player:
             pygame.quit()
             exit()
 
-# for now, we will simply use strings as only the description is needed
-#class Card:
-#    def __init__(self, description):
-#        self.description = description
-
 
 class CardStack:
     def __init__(self, card_type):
-        if card_type == "Opportunity Knocks":
-            self.cards = numpy.genfromtxt("cards/Opportunity_Knocks.txt", dtype=str, delimiter=';')
-            self.type = card_type
-        elif card_type == "Pot Luck":
-            self.cards = numpy.genfromtxt("cards/Pot_Luck.txt", dtype=str, delimiter=';')
-            self.type = card_type
-        else:
+        if not (card_type == "Opportunity Knocks" or card_type == "Pot Luck"):
             print("\nInvalid card type given to CardStack")
             pygame.quit()
             exit()
+
+        rawCards = numpy.genfromtxt("cards/"+card_type.replace(' ', '_')+".txt", dtype=str, delimiter=';')
+        self.cards = rawCards[0:, 0]
+        self.type = card_type
 
     def shuffle(self):
         random.shuffle(self.cards)
