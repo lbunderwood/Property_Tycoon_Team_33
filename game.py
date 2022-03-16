@@ -275,6 +275,8 @@ class Game:
         def blit_board():
             # place corners
             screen.blit(centre, (140, 140))
+            screen.blit(opportunityCards, (539, 549))
+            screen.blit(potluckCards, (150, 140))
             for tile in corners.values():
                 screen.blit(tile.image, tile.position)
             # place title text
