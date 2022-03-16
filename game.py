@@ -160,6 +160,31 @@ class Player:
 
         return cardImage
 
+    def move_x(self, spaces):
+        current = tiles.index(self.position)
+        destination_index = current - spaces
+
+        if destination_index > len(tiles) - 1:
+            destination_index -= len(tiles) - 1
+
+        self.position = tiles[destination_index]
+        print('current: ', destination_index)
+
+    def move_to(self, space):
+        if space in properties:
+            destination = properties[space].position
+        elif space in card_spaces:
+            destination = card_spaces[space].position
+        elif space in taxes:
+            destination = taxes[space].position
+        elif space in corners:
+            destination = corners[space].position
+        else:
+            print("\nInvalid space \"" + space + "\" passed to Player.move_to()")
+            pygame.quit()
+            exit()
+
+        self.position = destination
 
 class CardStack:
     def __init__(self, card_type):
@@ -240,79 +265,6 @@ class Game:
         opportunityCards = pygame.image.load('graphics/opportunitycards.png')
         potluckCards = pygame.image.load('graphics/potluckcards.png')
 
-        # Corners
-        corners = {
-            'free_parking': Tile((0, 0), pygame.image.load('graphics/free_parking.png')),
-            'go': Tile((770, 770), pygame.image.load('graphics/go.png')),
-            'go_to_jail': Tile((770, 0), pygame.image.load('graphics/go_to_jail.png')),
-            'jail': Tile((0, 770), pygame.image.load('graphics/jail.png'))
-        }
-
-        # Tax spaces
-        taxes = {
-            'supertax': Tile((770, 630), pygame.image.load('graphics/supertax.png')),
-            'incometax': Tile((490, 770), pygame.image.load('graphics/incometax.png'))
-        }
-
-        # Card Spaces on Board
-        card_spaces = {
-            'opportunity1': Tile((770, 490), pygame.image.load('graphics/opportunityH.png')),
-            'opportunity2': Tile((210, 0), pygame.image.load('graphics/opportunityV.png')),
-            'opportunity3': Tile((280, 770), pygame.image.load('graphics/opportunityV.png')),
-            'potluck1': Tile((0, 280), pygame.image.load('graphics/potluckH.png')),
-            'potluck2': Tile((770, 280), pygame.image.load('graphics/potluckH.png')),
-            'potluck3': Tile((630, 770), pygame.image.load('graphics/potluckV.png'))
-        }
-
-        # PROPERTIES (PRICE, POSITION, GROUP, RENT, IMAGE)
-        properties = {
-            'brighton': Property(200, (420, 770), 'station', 25, pygame.image.load('graphics/brighton.png')),
-            'falmer': Property(200, (420, 0), 'station', 25, pygame.image.load('graphics/falmer.png')),
-            'portslade': Property(200, (770, 420), 'station', 25, pygame.image.load('graphics/portslade.png')),
-            'hove': Property(200, (0, 420), 'station', 25, pygame.image.load('graphics/hove.png')),
-            'edison': Property(150, (630, 0), 'utility', 0, pygame.image.load('graphics/edison.png')),
-            'tesla': Property(150, (0, 630), 'utility', 0, pygame.image.load('graphics/tesla.png')),
-            'broyles': Property(200, (0, 140), 'orange', 16, pygame.image.load('graphics/broyles.png')),
-            'dunham': Property(180, (0, 210), 'orange', 14, pygame.image.load('graphics/dunham.png')),
-            'bishop': Property(180, (0, 350), 'orange', 14, pygame.image.load('graphics/bishop.png')),
-            'rey': Property(160, (0, 490), 'purple', 12, pygame.image.load('graphics/rey.png')),
-            'wookie': Property(140, (0, 560), 'purple', 10, pygame.image.load('graphics/wookie.png')),
-            'skywalker': Property(140, (0, 700), 'purple', 10, pygame.image.load('graphics/skywalker.png')),
-            'hanxin': Property(240, (350, 0), 'red', 20, pygame.image.load('graphics/hanxin.png')),
-            'mulan': Property(220, (280, 0), 'red', 18, pygame.image.load('graphics/mulan.png')),
-            'yuefei': Property(220, (140, 0), 'red', 18, pygame.image.load('graphics/yuefei.png')),
-            'crusher': Property(280, (700, 0), 'yellow', 22, pygame.image.load('graphics/crusher.png')),
-            'picard': Property(260, (560, 0), 'yellow', 22, pygame.image.load('graphics/picard.png')),
-            'shatner': Property(260, (490, 0), 'yellow', 22, pygame.image.load('graphics/shatner.png')),
-            'ibis': Property(320, (770, 350), 'green', 28, pygame.image.load('graphics/ibis.png')),
-            'ghengis': Property(300, (770, 210), 'green', 26, pygame.image.load('graphics/ghengis.png')),
-            'sirat': Property(300, (770, 140), 'green', 26, pygame.image.load('graphics/sirat.png')),
-            'turing': Property(400, (770, 700), 'dark blue', 50, pygame.image.load('graphics/turing.png')),
-            'james': Property(350, (770, 560), 'dark blue', 35, pygame.image.load('graphics/james.png')),
-            'gangsters': Property(60, (560, 770), 'brown', 4, pygame.image.load('graphics/gangsters.png')),
-            'creek': Property(60, (700, 770), 'brown', 2, pygame.image.load('graphics/creek.png')),
-            'granger': Property(120, (140, 770), 'light blue', 8, pygame.image.load('graphics/granger.png')),
-            'potter': Property(100, (210, 770), 'light blue', 6, pygame.image.load('graphics/potter.png')),
-            'angels': Property(100, (350, 770), 'light blue', 6, pygame.image.load('graphics/angels.png'))
-        }
-
-        # Get list of all tile positions to help move players around
-        tiles = [(770, 770), (770, 700), (770, 630), (770, 560), (770, 490), (770, 420), (770, 350), (770, 280),
-                 (770, 210), (770, 140), (770, 0), (700, 0), (630, 0), (560, 0), (490, 0), (350, 0), (280, 0), (210, 0),
-                 (140, 0), (0, 0), (0, 140), (0, 210), (0, 280), (0, 350), (0, 420), (0, 490), (0, 490), (0, 560),
-                 (0, 630), (0, 700), (0, 770), (140, 770), (210, 770), (280, 770), (350, 770), (420, 770), (490, 770),
-                 (560, 770), (630, 770), (700, 770), (770, 770)]
-
-        def move_x(player, spaces):
-            current = tiles.index(player.position)
-            destination_index = current + spaces
-
-            if destination_index > len(tiles) - 1:
-                destination_index -= len(tiles) - 1
-
-            player.position = tiles[destination_index]
-            print('current: ', destination_index)
-
         # Updates and displays player pieces
         def blit_players():
             for player in self.players.values():
@@ -363,7 +315,7 @@ class Game:
         player_names = []
         for name in players.keys():
             player_names.append(name)
-        current_player = 0
+        current_player_num = 0
         turn_state = "start"
 
         potLuck = CardStack("Pot Luck")
@@ -372,7 +324,7 @@ class Game:
         opportunityKnocks.shuffle()
 
         while run:
-            player = players.get(player_names[current_player])
+            current_player = players.get(player_names[current_player_num])
 
             for event in pygame.event.get():
 
@@ -386,15 +338,15 @@ class Game:
 
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_SPACE and turn_state == "start":
-                        move_x(player, dice_results)
+                        current_player.move_x(dice_results)
                         turn_state = "moved"
                         update_board()
 
                     elif event.key == pygame.K_SPACE and turn_state == "space action":
-                        current_player += 1
-                        if current_player == 5:
-                            current_player = 0
-                        print("Current Player: ", current_player)
+                        current_player_num += 1
+                        if current_player_num == 5:
+                            current_player_num = 0
+                        print("Current Player: ", current_player_num)
                         update_board()
                         turn_state = "start"
                 """
@@ -407,17 +359,82 @@ class Game:
             # check if player has landed on card space
             if turn_state == "moved":
                 for space in card_spaces:
-                    if card_spaces[space].position == player.position:
+                    if card_spaces[space].position == current_player.position:
                         if "opportunity" in space:
-                            card_img = player.draw_card(opportunityKnocks)
+                            card_img = current_player.draw_card(opportunityKnocks)
                         elif "potluck" in space:
-                            card_img = player.draw_card(potLuck)
+                            card_img = current_player.draw_card(potLuck)
 
                         screen.blit(card_img, (278, 366))
                         pygame.display.update()
 
                 turn_state = "space action"
 
+
+# Global Board Information
+
+# Corners
+corners = {
+    'free_parking': Tile((0, 0), pygame.image.load('graphics/free_parking.png')),
+    'go': Tile((770, 770), pygame.image.load('graphics/go.png')),
+    'go_to_jail': Tile((770, 0), pygame.image.load('graphics/go_to_jail.png')),
+    'jail': Tile((0, 770), pygame.image.load('graphics/jail.png'))
+}
+
+# Tax spaces
+taxes = {
+    'supertax': Tile((770, 630), pygame.image.load('graphics/supertax.png')),
+    'incometax': Tile((490, 770), pygame.image.load('graphics/incometax.png'))
+}
+
+# Card Spaces on Board
+card_spaces = {
+    'opportunity1': Tile((770, 490), pygame.image.load('graphics/opportunityH.png')),
+    'opportunity2': Tile((210, 0), pygame.image.load('graphics/opportunityV.png')),
+    'opportunity3': Tile((280, 770), pygame.image.load('graphics/opportunityV.png')),
+    'potluck1': Tile((0, 280), pygame.image.load('graphics/potluckH.png')),
+    'potluck2': Tile((770, 280), pygame.image.load('graphics/potluckH.png')),
+    'potluck3': Tile((630, 770), pygame.image.load('graphics/potluckV.png'))
+}
+
+# PROPERTIES (PRICE, POSITION, GROUP, RENT, IMAGE)
+properties = {
+    'brighton': Property(200, (420, 770), 'station', 25, pygame.image.load('graphics/brighton.png')),
+    'falmer': Property(200, (420, 0), 'station', 25, pygame.image.load('graphics/falmer.png')),
+    'portslade': Property(200, (770, 420), 'station', 25, pygame.image.load('graphics/portslade.png')),
+    'hove': Property(200, (0, 420), 'station', 25, pygame.image.load('graphics/hove.png')),
+    'edison': Property(150, (630, 0), 'utility', 0, pygame.image.load('graphics/edison.png')),
+    'tesla': Property(150, (0, 630), 'utility', 0, pygame.image.load('graphics/tesla.png')),
+    'broyles': Property(200, (0, 140), 'orange', 16, pygame.image.load('graphics/broyles.png')),
+    'dunham': Property(180, (0, 210), 'orange', 14, pygame.image.load('graphics/dunham.png')),
+    'bishop': Property(180, (0, 350), 'orange', 14, pygame.image.load('graphics/bishop.png')),
+    'rey': Property(160, (0, 490), 'purple', 12, pygame.image.load('graphics/rey.png')),
+    'wookie': Property(140, (0, 560), 'purple', 10, pygame.image.load('graphics/wookie.png')),
+    'skywalker': Property(140, (0, 700), 'purple', 10, pygame.image.load('graphics/skywalker.png')),
+    'hanxin': Property(240, (350, 0), 'red', 20, pygame.image.load('graphics/hanxin.png')),
+    'mulan': Property(220, (280, 0), 'red', 18, pygame.image.load('graphics/mulan.png')),
+    'yuefei': Property(220, (140, 0), 'red', 18, pygame.image.load('graphics/yuefei.png')),
+    'crusher': Property(280, (700, 0), 'yellow', 22, pygame.image.load('graphics/crusher.png')),
+    'picard': Property(260, (560, 0), 'yellow', 22, pygame.image.load('graphics/picard.png')),
+    'shatner': Property(260, (490, 0), 'yellow', 22, pygame.image.load('graphics/shatner.png')),
+    'ibis': Property(320, (770, 350), 'green', 28, pygame.image.load('graphics/ibis.png')),
+    'ghengis': Property(300, (770, 210), 'green', 26, pygame.image.load('graphics/ghengis.png')),
+    'sirat': Property(300, (770, 140), 'green', 26, pygame.image.load('graphics/sirat.png')),
+    'turing': Property(400, (770, 700), 'dark blue', 50, pygame.image.load('graphics/turing.png')),
+    'james': Property(350, (770, 560), 'dark blue', 35, pygame.image.load('graphics/james.png')),
+    'gangsters': Property(60, (560, 770), 'brown', 4, pygame.image.load('graphics/gangsters.png')),
+    'creek': Property(60, (700, 770), 'brown', 2, pygame.image.load('graphics/creek.png')),
+    'granger': Property(120, (140, 770), 'light blue', 8, pygame.image.load('graphics/granger.png')),
+    'potter': Property(100, (210, 770), 'light blue', 6, pygame.image.load('graphics/potter.png')),
+    'angels': Property(100, (350, 770), 'light blue', 6, pygame.image.load('graphics/angels.png'))
+}
+
+# Get list of all tile positions to help move players around
+tiles = [(770, 770), (770, 700), (770, 630), (770, 560), (770, 490), (770, 420), (770, 350), (770, 280),
+         (770, 210), (770, 140), (770, 0), (700, 0), (630, 0), (560, 0), (490, 0), (350, 0), (280, 0), (210, 0),
+         (140, 0), (0, 0), (0, 140), (0, 210), (0, 280), (0, 350), (0, 420), (0, 490), (0, 490), (0, 560),
+         (0, 630), (0, 700), (0, 770), (140, 770), (210, 770), (280, 770), (350, 770), (420, 770), (490, 770),
+         (560, 770), (630, 770), (700, 770), (770, 770)]
 
 # This if statement makes it so that when running the test suite, the game does not launch
 if __name__ == '__main__':
