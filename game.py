@@ -57,10 +57,10 @@ class Player:
             self.balance += 100
             cardImage = pygame.image.load('graphics/opportunity knocks 2.png')
         elif card == "Advance to Turing Heights":
-            # TODO: add movement
+            self.move_to('turing')
             cardImage = pygame.image.load('graphics/opportunity knocks 3.png')
         elif card == "Advance to Han Xin Gardens. If you pass GO, collect £200":
-            # TODO: add movement
+            self.move_to('hanxin')
             cardImage = pygame.image.load('graphics/opportunity knocks 3(1).png')
         elif card == "Fined £15 for speeding":
             self.balance -= 15
@@ -70,7 +70,7 @@ class Player:
             self.balance -= 150
             cardImage = pygame.image.load('graphics/opportunity knocks 5.png')
         elif card == "Take a trip to Hove station. If you pass GO collect £200":
-            # TODO: add movement
+            self.move_to('hove')
             cardImage = pygame.image.load('graphics/opportunity knocks 6.png')
         elif card == "Loan matures, collect £150":
             self.balance += 150
@@ -79,20 +79,26 @@ class Player:
             # TODO: add calculation, property class needs houses/hotels
             cardImage = pygame.image.load('graphics/opportunity knocks 8.png')
         elif card == "Advance to GO":
-            # TODO: add movement
-            cardImage = pygame.image.load('graphics/opportunity knocks 9.png')
+            self.move_to('go')
+            if stack.type == "Opportunity Knocks":
+                cardImage = pygame.image.load('graphics/opportunity knocks 9.png')
+            else:
+                cardImage = pygame.image.load('graphics/pot luck 8.png')
         elif card == "You are assessed for repairs, £25/house, £100/hotel":
             # TODO: add calculation, property class needs houses/hotels
             cardImage = pygame.image.load('graphics/opportunity knocks 10.png')
         elif card == "Go back 3 spaces":
-            # TODO: add movement
+            self.move_x(-3)
             cardImage = pygame.image.load('graphics/opportunity knocks 11.png')
         elif card == "Advance to Skywalker Drive. If you pass GO collect £200":
-            # TODO: add movement
+            self.move_to('skywalker')
             cardImage = pygame.image.load('graphics/opportunity knocks 12.png')
         elif card == "Go to jail. Do not pass GO, do not collect £200":
-            # TODO: add movement (and jail)
-            cardImage = pygame.image.load('graphics/opportunity knocks 13.png')
+            self.move_to('jail')
+            if stack.type == "Opportunity Knocks":
+                cardImage = pygame.image.load('graphics/opportunity knocks 13.png')
+            else:
+                cardImage = pygame.image.load('graphics/pot luck 14.png')
         elif card == "Drunk in charge of a hoverboard. Fine £30":
             self.balance -= 30
             cardImage = pygame.image.load('graphics/opportunity knocks 14.png')
@@ -109,7 +115,7 @@ class Player:
             self.balance += 50
             cardImage = pygame.image.load('graphics/pot luck 2.png')
         elif card == "You are up the creek with no paddle - go back to the Old Creek":
-            # TODO: add movement
+            self.move_to('creek')
             cardImage = pygame.image.load('graphics/pot luck 3.png')
         elif card == "Student loan refund. Collect £20":
             self.balance += 20
@@ -123,9 +129,6 @@ class Player:
         elif card == "Mega late night taxi bill pay £50":
             self.balance -= 50
             cardImage = pygame.image.load('graphics/pot luck 7.png')
-        elif card == "Advance to go":
-            # TODO: add movement
-            cardImage = pygame.image.load('graphics/pot luck 8.png')
         elif card == "From sale of Bitcoin you get £50":
             self.balance += 50
             cardImage = pygame.image.load('graphics/pot luck 9.png')
@@ -142,9 +145,6 @@ class Player:
         elif card == "Savings bond matures, collect £100":
             self.balance += 100
             cardImage = pygame.image.load('graphics/pot luck 13.png')
-        elif card == "Go to jail. Do not pass GO, do not collect £200":
-            # TODO: add movement
-            cardImage = pygame.image.load('graphics/pot luck 14.png')
         elif card == "Received interest on shares of £25":
             self.balance += 25
             cardImage = pygame.image.load('graphics/pot luck 15.png')
