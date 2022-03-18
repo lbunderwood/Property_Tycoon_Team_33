@@ -22,6 +22,8 @@ class Player:
         self.properties = {}
         self.shape = shape
         self.position = (770, 770)
+        self.in_jail = False
+        self.free_jail_card = 0
         if self.shape == 'boot':
             # self.position = (790, 790)
             self.image = pygame.image.load('graphics/boot.png')
@@ -49,6 +51,7 @@ class Player:
     def draw_card(self, stack):
         card = stack.draw()
         cardImage = "VAR INIT"
+        fp_money = 0
 
         if card == "Bank pays you divided of £50":
             self.balance += 50
@@ -64,7 +67,7 @@ class Player:
             cardImage = pygame.image.load('graphics/opportunity knocks 3(1).png')
         elif card == "Fined £15 for speeding":
             self.balance -= 15
-            # TODO: add payment to free parking
+            fp_money = 15
             cardImage = pygame.image.load('graphics/opportunity knocks 4.png')
         elif card == "Pay university fees of £150":
             self.balance -= 150
@@ -94,16 +97,18 @@ class Player:
             self.move_to('skywalker')
             cardImage = pygame.image.load('graphics/opportunity knocks 12.png')
         elif card == "Go to jail. Do not pass GO, do not collect £200":
-            self.move_to('jail')
+            self.go_to_jail()
             if stack.type == "Opportunity Knocks":
                 cardImage = pygame.image.load('graphics/opportunity knocks 13.png')
             else:
                 cardImage = pygame.image.load('graphics/pot luck 14.png')
         elif card == "Drunk in charge of a hoverboard. Fine £30":
             self.balance -= 30
+            fp_money = 30
             cardImage = pygame.image.load('graphics/opportunity knocks 14.png')
         elif card == "Get out of jail free":
-            # TODO: add get out of jail free
+            self.free_jail_card += 1
+            stack.remove_card()
             if stack.type == "Opportunity Knocks":
                 cardImage = pygame.image.load('graphics/opportunity knocks 15.png')
             else:
@@ -115,7 +120,7 @@ class Player:
             self.balance += 50
             cardImage = pygame.image.load('graphics/pot luck 2.png')
         elif card == "You are up the creek with no paddle - go back to the Old Creek":
-            self.move_to('creek')
+            self.move_to('creek', pass_go=False)
             cardImage = pygame.image.load('graphics/pot luck 3.png')
         elif card == "Student loan refund. Collect £20":
             self.balance += 20
@@ -144,6 +149,7 @@ class Player:
             cardImage = pygame.image.load('graphics/pot luck 12.png')
         elif card == "Savings bond matures, collect £100":
             self.balance += 100
+            fp_money = 50
             cardImage = pygame.image.load('graphics/pot luck 13.png')
         elif card == "Received interest on shares of £25":
             self.balance += 25
@@ -158,19 +164,27 @@ class Player:
             pygame.quit()
             exit()
 
-        return cardImage
+        return cardImage, fp_money
 
-    def move_x(self, spaces):
+    # moves player by number of spaces given by spaces
+    # pass_go is an optional parameter that should be set to false when moving to jail, etc
+    def move_x(self, spaces, pass_go=True):
         current = tiles.index(self.position)
         destination_index = current - spaces
 
         if destination_index > len(tiles) - 1:
             destination_index -= len(tiles) - 1
+        elif destination_index < 0:
+            destination_index += len(tiles) - 1
+            if pass_go:
+                self.balance += 200
 
         self.position = tiles[destination_index]
         print('current: ', destination_index)
 
-    def move_to(self, space):
+    # moves player to a space given as a string
+    # pass_go is an optional parameter that should be set to false when moving to jail, etc
+    def move_to(self, space, pass_go=True):
         if space in properties:
             destination = properties[space].position
         elif space in card_spaces:
@@ -184,7 +198,22 @@ class Player:
             pygame.quit()
             exit()
 
-        self.position = destination
+        # calculate number of spaces to move and hand off to move_x
+        # this is to follow the Single Responsibility Principle
+        # and also makes sure we check if we passed GO
+        current = tiles.index(self.position)
+        destination_index = tiles.index(destination)
+        self.move_x(current - destination_index, pass_go)
+
+    def go_to_jail(self):
+        self.move_to('jail', pass_go=False)
+        self.position = (self.position[0] + 35, self.position[1])
+        self.in_jail = True
+
+    def get_out_jail(self):
+        self.position = (self.position[0] - 35, self.position[1])
+        self.in_jail = False
+
 
 class CardStack:
     def __init__(self, card_type):
@@ -204,6 +233,15 @@ class CardStack:
         card = self.cards[0]
         self.cards = numpy.roll(self.cards, -1)
         return card
+
+    # intended for use directly after draw() to remove the last card drawn
+    # only use for removing get out of jail free card
+    def remove_card(self):
+        self.cards = self.cards[:-1]
+
+    # adds a get out of jail free card to the bottom of the deck
+    def return_card(self):
+        self.cards = numpy.append(self.cards, "Get out of jail free")
 
 
 # class separate for just tracking positions
@@ -325,6 +363,8 @@ class Game:
         potLuck.shuffle()
         opportunityKnocks.shuffle()
 
+        free_parking = 0
+
         while run:
             current_player = players.get(player_names[current_player_num])
 
@@ -340,7 +380,8 @@ class Game:
 
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_SPACE and turn_state == "start":
-                        current_player.move_x(dice_results)
+                        if not current_player.in_jail:
+                            current_player.move_x(dice_results)
                         turn_state = "moved"
                         update_board()
 
@@ -358,17 +399,26 @@ class Game:
             # draw & update
             clock.tick(60)
 
-            # check if player has landed on card space
+            # perform the action associated with the space the player landed on
             if turn_state == "moved":
+                # card spaces
                 for space in card_spaces:
                     if card_spaces[space].position == current_player.position:
                         if "opportunity" in space:
-                            card_img = current_player.draw_card(opportunityKnocks)
+                            card_img, fp_money = current_player.draw_card(opportunityKnocks)
                         elif "potluck" in space:
-                            card_img = current_player.draw_card(potLuck)
+                            card_img, fp_money = current_player.draw_card(potLuck)
 
+                        free_parking += fp_money
                         screen.blit(card_img, (278, 366))
                         pygame.display.update()
+
+                # corner spaces
+                if current_player.position == corners['go_to_jail'].position:
+                    current_player.go_to_jail()
+                if current_player.position == corners['free_parking'].position:
+                    current_player.balance += free_parking
+                    free_parking = 0
 
                 turn_state = "space action"
 
@@ -432,7 +482,7 @@ properties = {
 }
 
 # Get list of all tile positions to help move players around
-tiles = [(770, 770), (770, 700), (770, 630), (770, 560), (770, 490), (770, 420), (770, 350), (770, 280),
+tiles = [(770, 700), (770, 630), (770, 560), (770, 490), (770, 420), (770, 350), (770, 280),
          (770, 210), (770, 140), (770, 0), (700, 0), (630, 0), (560, 0), (490, 0), (350, 0), (280, 0), (210, 0),
          (140, 0), (0, 0), (0, 140), (0, 210), (0, 280), (0, 350), (0, 420), (0, 490), (0, 490), (0, 560),
          (0, 630), (0, 700), (0, 770), (140, 770), (210, 770), (280, 770), (350, 770), (420, 770), (490, 770),
