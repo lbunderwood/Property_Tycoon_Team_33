@@ -174,10 +174,10 @@ class Player:
 
         if destination_index > len(tiles) - 1:
             destination_index -= len(tiles) - 1
-        elif destination_index < 0:
-            destination_index += len(tiles) - 1
             if pass_go:
                 self.balance += 200
+        elif destination_index < 0:
+            destination_index += len(tiles) - 1
 
         self.index = destination_index
         print('Moved', spaces, 'spaces to tile n#: ', destination_index)
@@ -203,7 +203,7 @@ class Player:
         # and also makes sure we check if we passed GO
         current = self.index
         destination_index = tiles.index(destination)
-        self.move_x(current - destination_index, pass_go)
+        self.move_x(destination_index - current, pass_go)
 
     def go_to_jail(self):
         self.move_to('jail', pass_go=False)
