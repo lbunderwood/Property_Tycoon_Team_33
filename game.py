@@ -207,11 +207,9 @@ class Player:
 
     def go_to_jail(self):
         self.move_to('jail', pass_go=False)
-        self.position = (self.position[0] + 35, self.position[1])
         self.in_jail = True
 
     def get_out_jail(self):
-        self.position = (self.position[0] - 35, self.position[1])
         self.in_jail = False
 
 
@@ -309,6 +307,8 @@ class Game:
             for player in self.players.values():
                 currently_on = tiles[player.index]
                 coord = currently_on.position
+                if player.in_jail:
+                    coord = (coord[0] + 35, coord[1])
                 screen.blit(player.image, coord)
             pygame.display.update()
 
@@ -385,7 +385,6 @@ class Game:
 
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE] and turn_state == "start":
-                    #update_board()
                     dice = roll()
                     print('Rolling...')
                     total = dice[0].number + dice[1].number
@@ -405,6 +404,7 @@ class Game:
                         if current_player_num == 5:
                             current_player_num = 0
                         turn_state = "start"
+                        update_board()
 
             # perform the action associated with the space the player landed on
             if turn_state == "moved":
@@ -436,6 +436,7 @@ class Game:
 
                 if player_rect.colliderect(jail_rect):
                     current_player.go_to_jail()
+                    update_board()
                 elif player_rect.colliderect(parking_rect):
                     current_player.balance += free_parking
                     free_parking = 0
