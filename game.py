@@ -19,7 +19,7 @@ os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x, y)
 class Player:
     def __init__(self, shape):
         self.balance = 1500
-        self.properties = {}
+        self.properties = []
         self.shape = shape
         self.index = 0
         self.in_jail = False
@@ -255,10 +255,14 @@ class Property:
         self.position = position
         self.colour = colour
         self.rent = rent
+        self.image = image
+
         # defaults not initialised
         self.owner = 'bank'
         self.mortgaged = False
-        self.image = image
+
+        # indicates # of houses, hotel = 5
+        self.upgrade = 0
 
 
 class Dice:
@@ -295,6 +299,7 @@ class Game:
         centre = pygame.Surface((630, 630))
         centre.fill('White')
         # Text
+        prompt_font = pygame.font.Font('fonts/Cinzel-SemiBold.ttf', 20)
         title_font = pygame.font.Font('fonts/monoton.ttf', 45)
         centre_text = title_font.render('Property     Tycoon', True, 'Black')
         centre_text_rect = centre_text.get_rect(center=(455, 455))
@@ -398,13 +403,27 @@ class Game:
                         turn_state = "moved"
                         update_board()
 
-                    elif event.key == pygame.K_SPACE and turn_state == "space action":
-                        print('Do Action')
+                    elif event.key == pygame.K_SPACE and turn_state == "end":
+                        print('Next Turn!')
                         current_player_num += 1
                         if current_player_num == 5:
                             current_player_num = 0
                         turn_state = "start"
                         update_board()
+
+                    elif event.key == pygame.K_y and turn_state == "buy":
+                        print('Property Bought!')
+                        prop = tiles[current_player.index]
+                        current_player.balance -= prop.price
+                        current_player.properties.append(prop)
+                        update_board()
+                        turn_state = "end"
+
+                    elif event.key == pygame.K_n and turn_state == "buy":
+                        print('Player passed on property')
+                        # auction goes here
+                        update_board()
+                        turn_state = "end"
 
             # perform the action associated with the space the player landed on
             if turn_state == "moved":
@@ -441,8 +460,30 @@ class Game:
                     current_player.balance += free_parking
                     free_parking = 0
 
-                turn_state = "space action"
+                # property tiles
+                for name in properties:
+                    prop = properties[name]
+                    if tiles[current_player.index] == prop:
+                        if prop.owner == 'bank':
+                            deed = pygame.image.load("graphics/deed_gangsters.png")
+                            # deed = pygame.image.load("graphics/deed_"+name+".png")
+                            screen.blit(deed, (330, 150))
+                            buy_text = prompt_font.render('Would you like to purchase this property?', True, 'Black')
+                            buy_text2 = prompt_font.render('Press Y or N.', True, 'Black')
+                            buy_text_rect = buy_text.get_rect(center=(455, 560))
+                            buy_text_rect2 = buy_text2.get_rect(center=(455, 610))
+                            screen.blit(buy_text, buy_text_rect)
+                            screen.blit(buy_text2, buy_text_rect2)
+                            pygame.display.update()
+                            turn_state = "buy"
+                            break
+                        elif prop.owner != current_player.shape:
+                            current_player.balance -= prop.rent
+                            prop.owner.balance += prop.rent
+                        break
 
+                    if turn_state == "moved":
+                        turn_state = "end"
         # draw & update
         clock.tick(60)
 
