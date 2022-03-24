@@ -349,8 +349,11 @@ class Game:
             pygame.display.update()
 
         def turn_end_popup():
-            popup = pygame.image.load('graphics/turn_end.png')
-            screen.blit(popup, (205, 350))
+            # popup = pygame.image.load('graphics/turn_end.png')
+            # screen.blit(popup, (205, 350))
+            prompt_text = prompt_font.render('Press SPACE to end your turn', True, 'Black')
+            prompt_text_rect = prompt_text.get_rect(center=(455, 560))
+            screen.blit(prompt_text, prompt_text_rect)
             pygame.display.update()
 
         def roll():
@@ -403,12 +406,17 @@ class Game:
                         turn_state = "moved"
                         update_board()
 
-                    elif event.key == pygame.K_SPACE and turn_state == "end":
+                    elif event.key == pygame.K_SPACE and turn_state == "reset":
                         print('Next Turn!')
                         current_player_num += 1
                         if current_player_num == 5:
                             current_player_num = 0
                         turn_state = "start"
+                        update_board()
+                        turn_start_popup()
+
+                    elif event.key == pygame.K_SPACE and turn_state == "card":
+                        turn_state = 'moved'
                         update_board()
 
                     elif event.key == pygame.K_y and turn_state == "buy":
@@ -418,18 +426,21 @@ class Game:
                         current_player.properties.append(prop)
                         update_board()
                         turn_state = "end"
+                        turn_end_popup()
 
                     elif event.key == pygame.K_n and turn_state == "buy":
                         print('Player passed on property')
                         # auction goes here
                         update_board()
                         turn_state = "end"
+                        turn_end_popup()
 
             # perform the action associated with the space the player landed on
             if turn_state == "moved":
                 # card spaces
                 for space in card_spaces:
                     if tiles[current_player.index] == card_spaces[space]:
+                        old_idx = current_player.index
                         if "opportunity" in space:
                             card_img, fp_money = current_player.draw_card(opportunity_knocks)
                         elif "potluck" in space:
@@ -439,12 +450,23 @@ class Game:
                         screen.blit(card_img, (278, 366))
                         pygame.display.update()
 
+                        if old_idx == current_player.index:
+                            turn_state = "end"
+                        else:
+                            prompt_text = prompt_font.render('Press SPACE to move', True, 'Black')
+                            prompt_text_rect = prompt_text.get_rect(center=(455, 560))
+                            screen.blit(prompt_text, prompt_text_rect)
+                            pygame.display.update()
+                            turn_state = 'card'
+
+                if turn_state != 'moved':
+                    continue
                 '''
                 corner spaces 
                 ADDED COLLISION DETECTION FOR PLAYER OVERLAP FIX:
                 essentially works by getting a rectangle of each image + coords, then doing a collision detection 
                 method built into pygame, believe me there is no easier way
-                '''
+                
                 player_location = tiles[current_player.index].position
                 jail_location = corners['go_to_jail'].position
                 parking_location = corners['free_parking'].position
@@ -452,17 +474,40 @@ class Game:
                 player_rect = current_player.image.get_rect(topleft=player_location)
                 parking_rect = corners['free_parking'].image.get_rect(topleft=parking_location)
                 jail_rect = corners['go_to_jail'].image.get_rect(topleft=jail_location)
-
+    
                 if player_rect.colliderect(jail_rect):
                     current_player.go_to_jail()
                     update_board()
+                    turn_state = 'end'
                 elif player_rect.colliderect(parking_rect):
                     current_player.balance += free_parking
                     free_parking = 0
+                    turn_state = 'end'
+                    '''
+                for space in corners:
+                    if tiles[current_player.index] == corners[space]:
+                        if space == "go_to_jail":
+                            current_player.go_to_jail()
+                            update_board()
+                        elif space == "free_parking":
+                            current_player.balance += free_parking
+                            free_parking = 0
+                        turn_state = 'end'
+
+                if turn_state != 'moved':
+                    continue
+
+                for space in taxes:
+                    if tiles[current_player.index] == taxes[space]:
+                        # add tax space functionality here
+                        turn_state = 'end'
+
+                if turn_state != 'moved':
+                    continue
 
                 # property tiles
-                for name in properties:
-                    prop = properties[name]
+                for space in properties:
+                    prop = properties[space]
                     if tiles[current_player.index] == prop:
                         if prop.owner == 'bank':
                             deed = pygame.image.load("graphics/deed_gangsters.png")
@@ -480,10 +525,13 @@ class Game:
                         elif prop.owner != current_player.shape:
                             current_player.balance -= prop.rent
                             prop.owner.balance += prop.rent
+                        turn_state = 'end'
                         break
 
-                    if turn_state == "moved":
-                        turn_state = "end"
+            if turn_state == 'end':
+                turn_end_popup()
+                turn_state = 'reset'
+
         # draw & update
         clock.tick(60)
 
