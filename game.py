@@ -87,7 +87,6 @@ class Player:
                     self.balance -= prop.upgrade*40
                 elif prop.upgrade == 5:
                     self.balance -= 115
-
             card_image = pygame.image.load('graphics/opportunity knocks 8.png')
         elif card == "Advance to GO":
             self.move_to('go')
@@ -101,7 +100,6 @@ class Player:
                     self.balance -= prop.upgrade * 25
                 elif prop.upgrade == 5:
                     self.balance -= 100
-
             card_image = pygame.image.load('graphics/opportunity knocks 10.png')
         elif card == "Go back 3 spaces":
             self.move_x(-3)
@@ -389,30 +387,32 @@ class Game:
 
         free_parking = 0
 
-        def draw_card(current_player, card_stack):
-            old_idx = current_player.index
-            card_img, fp_money, further_action = current_player.draw_card(card_stack, len(self.players))
-
+        def draw_card(draw_player, card_stack):
+            old_idx = draw_player.index
+            card_img, fp, further_action = draw_player.draw_card(card_stack, len(self.players))
+            print("Card Drawn! "+further_action)
             screen.blit(card_img, (278, 366))
             pygame.display.update()
 
             if further_action == "birthday":
-                for name in players:
-                    player = players[name]
+                for p_name in players:
+                    player = players[p_name]
                     if player != current_player:
                         player.balance -= 10
 
-            if old_idx == current_player.index:
-                new_state = "end"
+            if old_idx != current_player.index:
+                display_prompt('Press SPACE to move')
+                new_state = 'card'
             elif further_action == "decision":
+                print("Decision prompt")
                 display_prompt('Would you like to draw an Opportunity Knocks card?')
                 display_prompt('Press Y or N', height=610)
                 new_state = "decision card"
             else:
-                display_prompt('Press SPACE to move')
-                new_state = 'card'
+                new_state = "end"
+                turn_end_popup()
 
-            return new_state, fp_money
+            return new_state, fp
 
         while run:
 
@@ -462,6 +462,7 @@ class Game:
                         current_player.balance -= 10
                         free_parking += 10
                         turn_state = "end"
+                        update_board()
                         turn_end_popup()
 
                     elif event.key == pygame.K_y and turn_state == "buy":
@@ -491,10 +492,7 @@ class Game:
                             turn_state, fp_money = draw_card(current_player, pot_luck)
                         else:
                             error("Invalid card space name used")
-
                         free_parking += fp_money
-                        if turn_state == "end":
-                            turn_end_popup()
 
                 if turn_state != 'moved':
                     continue
