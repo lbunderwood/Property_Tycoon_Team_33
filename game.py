@@ -15,6 +15,10 @@ x = 505
 y = 50
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x, y)
 
+def error(msg):
+    print("\n"+msg)
+    pygame.quit()
+    exit()
 
 class Player:
     def __init__(self, shape):
@@ -43,15 +47,14 @@ class Player:
             # self.position = (790, 835)
             self.image = pygame.image.load('graphics/iron.png')
         else:
-            print("\nNot a valid player shape, check player info")
-            pygame.quit()
-            exit()
+            error("Not a valid player shape, check player info")
 
     # takes card stack as input, draws card, applies result of card, and returns pygame image object
-    def draw_card(self, stack):
+    def draw_card(self, stack, player_count):
         card = stack.draw()
         card_image = "VAR INIT"
         fp_money = 0
+        further_action = ""
 
         if card == "Bank pays you divided of £50":
             self.balance += 50
@@ -79,7 +82,12 @@ class Player:
             self.balance += 150
             card_image = pygame.image.load('graphics/opportunity knocks 7.png')
         elif card == "You are assessed for repairs, £40/house, £115/hotel":
-            # TODO: add calculation, property class needs houses/hotels
+            for prop in self.properties:
+                if prop.upgrade < 5:
+                    self.balance -= prop.upgrade*40
+                elif prop.upgrade == 5:
+                    self.balance -= 115
+
             card_image = pygame.image.load('graphics/opportunity knocks 8.png')
         elif card == "Advance to GO":
             self.move_to('go')
@@ -88,7 +96,12 @@ class Player:
             else:
                 card_image = pygame.image.load('graphics/pot luck 8.png')
         elif card == "You are assessed for repairs, £25/house, £100/hotel":
-            # TODO: add calculation, property class needs houses/hotels
+            for prop in self.properties:
+                if prop.upgrade < 5:
+                    self.balance -= prop.upgrade * 25
+                elif prop.upgrade == 5:
+                    self.balance -= 100
+
             card_image = pygame.image.load('graphics/opportunity knocks 10.png')
         elif card == "Go back 3 spaces":
             self.move_x(-3)
@@ -141,8 +154,7 @@ class Player:
             self.balance -= 50
             card_image = pygame.image.load('graphics/pot luck 10.png')
         elif card == "Pay a £10 fine or take opportunity knocks":
-            # TODO: add interface for decision
-            # the tenner goes to free parking
+            further_action = "decision"
             card_image = pygame.image.load('graphics/pot luck 11.png')
         elif card == "Pay insurance fee of £50":
             self.balance -= 50
@@ -155,16 +167,13 @@ class Player:
             self.balance += 25
             card_image = pygame.image.load('graphics/pot luck 15.png')
         elif card == "It's your birthday. Collect £10 from each player":
-            # TODO: add deduction from other players and way of knowing how many players
-            player_count = 4
-            self.balance += 10 * player_count
+            further_action = "birthday"
+            self.balance += 10 * (player_count - 1)
             card_image = pygame.image.load('graphics/pot luck 16.png')
         else:
-            print("\nInvalid card description \"" + card + "\" passed to Player.draw_card()")
-            pygame.quit()
-            exit()
+            error("Invalid card description \"" + card + "\" passed to Player.draw_card()")
 
-        return card_image, fp_money
+        return card_image, fp_money, further_action
 
     # moves player by number of spaces given by spaces
     # pass_go is an optional parameter that should be set to false when moving to jail, etc
@@ -194,9 +203,7 @@ class Player:
         elif space in corners:
             destination = corners[space]
         else:
-            print("\nInvalid space \"" + space + "\" passed to Player.move_to()")
-            pygame.quit()
-            exit()
+            error("Invalid space \"" + space + "\" passed to Player.move_to()")
 
         # calculate number of spaces to move and hand off to move_x
         # this is to follow the Single Responsibility Principle
@@ -216,9 +223,7 @@ class Player:
 class CardStack:
     def __init__(self, card_type):
         if not (card_type == "Opportunity Knocks" or card_type == "Pot Luck"):
-            print("\nInvalid card type \"" + card_type + "\" given to CardStack")
-            pygame.quit()
-            exit()
+            error("\nInvalid card type \"" + card_type + "\" given to CardStack")
 
         rawCards = numpy.genfromtxt("cards/" + card_type.replace(' ', '_') + ".txt", dtype=str, delimiter=';')
         self.cards = rawCards[0:, 0]
@@ -345,16 +350,19 @@ class Game:
         # turn function displays a prompt popup
         def turn_start_popup():
             popup = pygame.image.load('graphics/turn start.png')
-            screen.blit(popup, (205, 350))
+            screen.blit(popup, (235, 350))
+            pygame.display.update()
+
+        def display_prompt(prompt_str, height=560):
+            prompt_text = prompt_font.render(prompt_str, True, 'Black')
+            prompt_text_rect = prompt_text.get_rect(center=(455, height))
+            screen.blit(prompt_text, prompt_text_rect)
             pygame.display.update()
 
         def turn_end_popup():
             # popup = pygame.image.load('graphics/turn_end.png')
             # screen.blit(popup, (205, 350))
-            prompt_text = prompt_font.render('Press SPACE to end your turn', True, 'Black')
-            prompt_text_rect = prompt_text.get_rect(center=(455, 560))
-            screen.blit(prompt_text, prompt_text_rect)
-            pygame.display.update()
+            display_prompt('Press SPACE to end your turn')
 
         def roll():
             dice1 = Dice()
@@ -380,6 +388,31 @@ class Game:
         opportunity_knocks.shuffle()
 
         free_parking = 0
+
+        def draw_card(current_player, card_stack):
+            old_idx = current_player.index
+            card_img, fp_money, further_action = current_player.draw_card(card_stack, len(self.players))
+
+            screen.blit(card_img, (278, 366))
+            pygame.display.update()
+
+            if further_action == "birthday":
+                for name in players:
+                    player = players[name]
+                    if player != current_player:
+                        player.balance -= 10
+
+            if old_idx == current_player.index:
+                new_state = "end"
+            elif further_action == "decision":
+                display_prompt('Would you like to draw an Opportunity Knocks card?')
+                display_prompt('Press Y or N', height=610)
+                new_state = "decision card"
+            else:
+                display_prompt('Press SPACE to move')
+                new_state = 'card'
+
+            return new_state, fp_money
 
         while run:
 
@@ -419,6 +452,18 @@ class Game:
                         turn_state = 'moved'
                         update_board()
 
+                    elif event.key == pygame.K_y and turn_state == "decision card":
+                        turn_state, fp_money = draw_card(current_player, opportunity_knocks)
+                        free_parking += fp_money
+                        if turn_state == "end":
+                            turn_end_popup()
+
+                    elif event.key == pygame.K_n and turn_state == "decision card":
+                        current_player.balance -= 10
+                        free_parking += 10
+                        turn_state = "end"
+                        turn_end_popup()
+
                     elif event.key == pygame.K_y and turn_state == "buy":
                         print('Property Bought!')
                         prop = tiles[current_player.index]
@@ -440,24 +485,16 @@ class Game:
                 # card spaces
                 for space in card_spaces:
                     if tiles[current_player.index] == card_spaces[space]:
-                        old_idx = current_player.index
                         if "opportunity" in space:
-                            card_img, fp_money = current_player.draw_card(opportunity_knocks)
+                            turn_state, fp_money = draw_card(current_player, opportunity_knocks)
                         elif "potluck" in space:
-                            card_img, fp_money = current_player.draw_card(pot_luck)
+                            turn_state, fp_money = draw_card(current_player, pot_luck)
+                        else:
+                            error("Invalid card space name used")
 
                         free_parking += fp_money
-                        screen.blit(card_img, (278, 366))
-                        pygame.display.update()
-
-                        if old_idx == current_player.index:
-                            turn_state = "end"
-                        else:
-                            prompt_text = prompt_font.render('Press SPACE to move', True, 'Black')
-                            prompt_text_rect = prompt_text.get_rect(center=(455, 560))
-                            screen.blit(prompt_text, prompt_text_rect)
-                            pygame.display.update()
-                            turn_state = 'card'
+                        if turn_state == "end":
+                            turn_end_popup()
 
                 if turn_state != 'moved':
                     continue
@@ -513,13 +550,8 @@ class Game:
                             deed = pygame.image.load("graphics/deed_gangsters.png")
                             # deed = pygame.image.load("graphics/deed_"+name+".png")
                             screen.blit(deed, (330, 150))
-                            buy_text = prompt_font.render('Would you like to purchase this property?', True, 'Black')
-                            buy_text2 = prompt_font.render('Press Y or N.', True, 'Black')
-                            buy_text_rect = buy_text.get_rect(center=(455, 560))
-                            buy_text_rect2 = buy_text2.get_rect(center=(455, 610))
-                            screen.blit(buy_text, buy_text_rect)
-                            screen.blit(buy_text2, buy_text_rect2)
-                            pygame.display.update()
+                            display_prompt('Would you like to purchase this property?')
+                            display_prompt('Press Y or N', height=610)
                             turn_state = "buy"
                             break
                         elif prop.owner != current_player.shape:
