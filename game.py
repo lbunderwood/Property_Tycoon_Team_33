@@ -554,7 +554,7 @@ class Game:
                             break
                         elif prop.owner != current_player.shape:
                             current_player.balance -= prop.rent
-                            prop.owner.balance += prop.rent
+                            players[prop.owner].balance += prop.rent
                         turn_state = 'end'
                         break
 
