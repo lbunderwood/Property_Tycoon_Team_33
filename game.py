@@ -318,7 +318,7 @@ class Game:
                 if player.in_jail:
                     coord = (coord[0] + 35, coord[1])
                 screen.blit(player.image, coord)
-            pygame.display.update()
+            # pygame.display.update()
 
         # Updates and displays the entire static game board WITHOUT PLAYER PIECES
         def blit_board():
@@ -339,11 +339,12 @@ class Game:
             # place tax pieces
             for tile in properties.values():
                 screen.blit(tile.image, tile.position)
-            pygame.display.update()
+            # pygame.display.update()
 
         def update_board():
             blit_board()
             blit_players()
+            pygame.display.update()
 
         # turn function displays a prompt popup
         def turn_start_popup():
@@ -361,6 +362,38 @@ class Game:
             # popup = pygame.image.load('graphics/turn_end.png')
             # screen.blit(popup, (205, 350))
             display_prompt('Press SPACE to end your turn')
+
+        def display_slider(cursor_x, player):
+            blit_board()
+            blit_players()
+            black = pygame.Color(0, 0, 0)
+            x_pos, y_pos = 255, 510
+            bar_length = 400
+            thickness = 10
+            pygame.draw.rect(screen, black, pygame.Rect(x_pos, y_pos, bar_length, thickness))
+            pygame.draw.circle(screen, black, (cursor_x, y_pos+thickness/2), thickness)
+
+            lower_text = prompt_font.render("0", True, 'Black')
+            lower_text_rect = lower_text.get_rect(topleft=(x_pos-30, y_pos-5))
+            screen.blit(lower_text, lower_text_rect)
+
+            higher_text = prompt_font.render(str(player.balance), True, 'Black')
+            higher_text_rect = higher_text.get_rect(topleft=(x_pos+bar_length+15, y_pos-5))
+            screen.blit(higher_text, higher_text_rect)
+
+            slider_val = (cursor_x-x_pos)*player.balance//bar_length
+            higher_text = prompt_font.render(str(slider_val), True, 'Black')
+            higher_text_rect = higher_text.get_rect(center=(cursor_x, y_pos - 15))
+            screen.blit(higher_text, higher_text_rect)
+
+            player_name = player_names[current_player_num]
+            display_prompt("Time for " + player_name + " to bid!")
+            display_prompt("Move the slider to enter your bid.", height=610)
+            display_prompt("Press ENTER to confirm", height=660)
+
+            pygame.display.update()
+
+            return slider_val
 
         def roll():
             dice1 = Dice()
@@ -386,6 +419,7 @@ class Game:
         opportunity_knocks.shuffle()
 
         free_parking = 0
+        player_bids = [0 for i in range(5)]
 
         def draw_card(draw_player, card_stack):
             old_idx = draw_player.index
@@ -474,10 +508,40 @@ class Game:
 
                     elif event.key == pygame.K_n and turn_state == "buy":
                         print('Player passed on property')
-                        # auction goes here
                         update_board()
-                        turn_state = "end"
-                        turn_end_popup()
+                        slider_out = display_slider(255, current_player)
+                        pass_player = current_player_num
+                        turn_state = "auction"
+
+                    elif event.key == pygame.K_RETURN and turn_state == "auction":
+                        player_bids[current_player_num] = slider_out
+                        current_player_num += 1
+                        if current_player_num == 5:
+                            current_player_num = 0
+
+                        if current_player_num != pass_player or all(bids == 0 for bids in player_bids):
+                            update_board()
+                            slider_out = display_slider(255, current_player)
+                        else:
+                            max_val = max(player_bids)
+                            max_player_num = player_bids.index(max_val)
+                            max_player = players.get(player_names[max_player_num])
+                            print('Property sold to: '+player_names[max_player_num])
+                            prop = tiles[current_player.index]
+                            max_player.balance -= max_val
+                            max_player.properties.append(prop)
+                            update_board()
+                            player_bids = [0 for i in range(5)]
+                            turn_state = "end"
+                            turn_end_popup()
+
+            if turn_state == "auction" and pygame.mouse.get_pressed()[0] != 0:
+                cursor_x_pos = pygame.mouse.get_pos()[0]
+                if cursor_x_pos < 255:
+                    cursor_x_pos = 255
+                elif cursor_x_pos > 655:
+                    cursor_x_pos = 655
+                slider_out = display_slider(cursor_x_pos, current_player)
 
             # perform the action associated with the space the player landed on
             if turn_state == "moved":
@@ -494,29 +558,7 @@ class Game:
 
                 if turn_state != 'moved':
                     continue
-                '''
-                corner spaces 
-                ADDED COLLISION DETECTION FOR PLAYER OVERLAP FIX:
-                essentially works by getting a rectangle of each image + coords, then doing a collision detection 
-                method built into pygame, believe me there is no easier way
-                
-                player_location = tiles[current_player.index].position
-                jail_location = corners['go_to_jail'].position
-                parking_location = corners['free_parking'].position
 
-                player_rect = current_player.image.get_rect(topleft=player_location)
-                parking_rect = corners['free_parking'].image.get_rect(topleft=parking_location)
-                jail_rect = corners['go_to_jail'].image.get_rect(topleft=jail_location)
-    
-                if player_rect.colliderect(jail_rect):
-                    current_player.go_to_jail()
-                    update_board()
-                    turn_state = 'end'
-                elif player_rect.colliderect(parking_rect):
-                    current_player.balance += free_parking
-                    free_parking = 0
-                    turn_state = 'end'
-                    '''
                 for space in corners:
                     if tiles[current_player.index] == corners[space]:
                         if space == "go_to_jail":
