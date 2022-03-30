@@ -390,7 +390,6 @@ class Game:
         def draw_card(draw_player, card_stack):
             old_idx = draw_player.index
             card_img, fp, further_action = draw_player.draw_card(card_stack, len(self.players))
-            print("Card Drawn! "+further_action)
             screen.blit(card_img, (278, 366))
             pygame.display.update()
 
@@ -404,7 +403,6 @@ class Game:
                 display_prompt('Press SPACE to move')
                 new_state = 'card'
             elif further_action == "decision":
-                print("Decision prompt")
                 display_prompt('Would you like to draw an Opportunity Knocks card?')
                 display_prompt('Press Y or N', height=610)
                 new_state = "decision card"
@@ -545,8 +543,10 @@ class Game:
                     prop = properties[space]
                     if tiles[current_player.index] == prop:
                         if prop.owner == 'bank':
-                            deed = pygame.image.load("graphics/deed_gangsters.png")
-                            # deed = pygame.image.load("graphics/deed_"+name+".png")
+                            try:
+                                deed = pygame.image.load("graphics/deed_"+space+".png")
+                            except Exception:
+                                error("There is no deed graphic for "+space)
                             screen.blit(deed, (330, 150))
                             display_prompt('Would you like to purchase this property?')
                             display_prompt('Press Y or N', height=610)
