@@ -132,6 +132,7 @@ dmypy.json
 /graphics
 /fonts
 /cards
+/menu
 
 # Pycharm project folder
 \.idea
