@@ -1,9 +1,12 @@
+import math
+
 import numpy
 import pygame
 import ctypes
 import os
 import random
 from sys import exit
+from menu.button import *
 
 WIDTH = HEIGHT = 910
 
@@ -310,6 +313,9 @@ class Game:
         opportunityCards = pygame.image.load('graphics/opportunitycards.png')
         potluckCards = pygame.image.load('graphics/potluckcards.png')
 
+        plus_button = Button(670, 450, prompt_font.render("+", True, 'Black'), 3)
+        minus_button = Button(220, 450, prompt_font.render("-", True, 'Black'), 3)
+
         # Updates and displays player pieces
         def blit_players():
             for player in self.players.values():
@@ -352,26 +358,34 @@ class Game:
             screen.blit(popup, (235, 350))
             pygame.display.update()
 
-        def display_prompt(prompt_str, height=560):
+        def display_prompt(prompt_str, height=560, update=True):
             prompt_text = prompt_font.render(prompt_str, True, 'Black')
             prompt_text_rect = prompt_text.get_rect(center=(455, height))
             screen.blit(prompt_text, prompt_text_rect)
-            pygame.display.update()
+            if update:
+                pygame.display.update()
 
         def turn_end_popup():
             # popup = pygame.image.load('graphics/turn_end.png')
             # screen.blit(popup, (205, 350))
             display_prompt('Press SPACE to end your turn')
 
-        def display_slider(cursor_x, player):
+        def calc_bid(mouse_x, player):
+            x_min = 255
+            bar_length = 400
+            return (mouse_x - x_min) * player.balance // bar_length
+
+        def display_slider(bid, player):
             blit_board()
             blit_players()
             black = pygame.Color(0, 0, 0)
             x_pos, y_pos = 255, 510
             bar_length = 400
             thickness = 10
+
+            circle_x = math.floor(bid / player.balance * bar_length + x_pos)
             pygame.draw.rect(screen, black, pygame.Rect(x_pos, y_pos, bar_length, thickness))
-            pygame.draw.circle(screen, black, (cursor_x, y_pos+thickness/2), thickness)
+            pygame.draw.circle(screen, black, (circle_x, y_pos+thickness/2), thickness)
 
             lower_text = prompt_font.render("0", True, 'Black')
             lower_text_rect = lower_text.get_rect(topleft=(x_pos-30, y_pos-5))
@@ -381,19 +395,19 @@ class Game:
             higher_text_rect = higher_text.get_rect(topleft=(x_pos+bar_length+15, y_pos-5))
             screen.blit(higher_text, higher_text_rect)
 
-            slider_val = (cursor_x-x_pos)*player.balance//bar_length
-            higher_text = prompt_font.render(str(slider_val), True, 'Black')
-            higher_text_rect = higher_text.get_rect(center=(cursor_x, y_pos - 15))
+            higher_text = prompt_font.render(str(bid), True, 'Black')
+            higher_text_rect = higher_text.get_rect(center=(circle_x, y_pos - 15))
             screen.blit(higher_text, higher_text_rect)
 
             player_name = player_names[current_player_num]
-            display_prompt("Time for " + player_name + " to bid!")
-            display_prompt("Move the slider to enter your bid.", height=610)
-            display_prompt("Press ENTER to confirm", height=660)
+            display_prompt("Time for " + player_name + " to bid!", update=False)
+            display_prompt("Move the slider to enter your bid.", height=610, update=False)
+            display_prompt("Press ENTER to confirm", height=660, update=False)
+
+            plus_button.draw(screen)
+            minus_button.draw(screen)
 
             pygame.display.update()
-
-            return slider_val
 
         def roll():
             dice1 = Dice()
@@ -509,19 +523,21 @@ class Game:
                     elif event.key == pygame.K_n and turn_state == "buy":
                         print('Player passed on property')
                         update_board()
-                        slider_out = display_slider(255, current_player)
+                        bid_val = 0
+                        display_slider(bid_val, current_player)
                         pass_player = current_player_num
                         turn_state = "auction"
 
                     elif event.key == pygame.K_RETURN and turn_state == "auction":
-                        player_bids[current_player_num] = slider_out
+                        player_bids[current_player_num] = bid_val
                         current_player_num += 1
                         if current_player_num == 5:
                             current_player_num = 0
 
                         if current_player_num != pass_player or all(bids == 0 for bids in player_bids):
                             update_board()
-                            slider_out = display_slider(255, current_player)
+                            bid_val = 0
+                            display_slider(bid_val, current_player)
                         else:
                             max_val = max(player_bids)
                             max_player_num = player_bids.index(max_val)
@@ -535,13 +551,29 @@ class Game:
                             turn_state = "end"
                             turn_end_popup()
 
-            if turn_state == "auction" and pygame.mouse.get_pressed()[0] != 0:
-                cursor_x_pos = pygame.mouse.get_pos()[0]
-                if cursor_x_pos < 255:
-                    cursor_x_pos = 255
-                elif cursor_x_pos > 655:
-                    cursor_x_pos = 655
-                slider_out = display_slider(cursor_x_pos, current_player)
+                if turn_state == "auction":
+                    mouse_x = pygame.mouse.get_pos()[0]
+                    slider_min, slider_max = 255, 655
+                    slider_x = max(slider_min, min(slider_max, mouse_x))
+                    if pygame.mouse.get_pressed()[0]:
+                        old_bid = bid_val
+                        if event.type == pygame.MOUSEBUTTONDOWN:
+                            if plus_button.draw(screen):
+                                bid_val += 1
+                            elif minus_button.draw(screen):
+                                bid_val -= 1
+
+                            if slider_min <= mouse_x <= slider_max:
+                                slider_active = True
+                            else:
+                                slider_active = False
+                        if event.type == pygame.MOUSEBUTTONUP:
+                            slider_active = False
+                        if slider_active:
+                            bid_val = calc_bid(slider_x, current_player)
+                    bid_val = max(0, min(current_player.balance, bid_val))
+                    display_slider(bid_val, current_player)
+
 
             # perform the action associated with the space the player landed on
             if turn_state == "moved":
