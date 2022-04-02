@@ -606,7 +606,12 @@ class Game:
 
                 for space in taxes:
                     if tiles[current_player.index] == taxes[space]:
-                        # add tax space functionality here
+                        if space == "supertax":
+                            current_player.balance -= 100
+                            display_prompt("Super Tax! You must pay £100 to the bank", 510)
+                        elif space == "incometax":
+                            current_player.balance -= 200
+                            display_prompt("Income Tax! You must pay £200 to the bank", 510)
                         turn_state = 'end'
 
                 if turn_state != 'moved':
