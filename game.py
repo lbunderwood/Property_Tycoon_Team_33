@@ -427,6 +427,7 @@ class Game:
         for name in players.keys():
             player_names.append(name)
         current_player_num = 0
+        current_player = players.get(player_names[current_player_num])
         turn_state = "start"
 
         pot_luck = CardStack("Pot Luck")
@@ -439,7 +440,7 @@ class Game:
 
         def draw_card(draw_player, card_stack):
             old_idx = draw_player.index
-            card_img, fp, further_action = draw_player.draw_card(card_stack, len(self.players))
+            card_img, fp, further_action = draw_player.draw_card(card_stack, len(players))
             screen.blit(card_img, (278, 366))
             pygame.display.update()
 
@@ -462,10 +463,13 @@ class Game:
 
             return new_state, fp
 
+        def increment_player(num):
+            new_num = num + 1
+            if new_num >= len(players):
+                new_num = 0
+            return new_num, players.get(player_names[new_num])
+
         while run:
-
-            current_player = players.get(player_names[current_player_num])
-
             for event in pygame.event.get():
 
                 if event.type == pygame.QUIT:
@@ -480,7 +484,7 @@ class Game:
 
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_SPACE and turn_state == "start":
-                        print("Current Player: ", players.get(player_names[current_player_num]).shape)
+                        print("Current Player: ", current_player.shape)
                         in_jail = current_player.in_jail
                         if not in_jail:
                             current_player.move_x(total)
@@ -489,9 +493,7 @@ class Game:
 
                     elif event.key == pygame.K_SPACE and turn_state == "reset":
                         print('Next Turn!')
-                        current_player_num += 1
-                        if current_player_num == 5:
-                            current_player_num = 0
+                        current_player_num, current_player = increment_player(current_player_num)
                         turn_state = "start"
                         update_board()
                         turn_start_popup()
@@ -528,21 +530,27 @@ class Game:
                         print('Player passed on property')
                         update_board()
                         bid_val = 0
-                        display_slider(bid_val, current_player)
                         pass_player = current_player_num
+                        while True:
+                            current_player_num, current_player = increment_player(current_player_num)
+                            if current_player.passed_go or current_player_num == pass_player:
+                                break
+                        display_slider(bid_val, current_player)
                         turn_state = "auction"
 
                     elif event.key == pygame.K_RETURN and turn_state == "auction":
                         player_bids[current_player_num] = bid_val
-                        current_player_num += 1
-                        if current_player_num == 5:
-                            current_player_num = 0
 
-                        if current_player_num != pass_player or all(bids == 0 for bids in player_bids):
+                        while True:
+                            current_player_num, current_player = increment_player(current_player_num)
+                            if current_player.passed_go or current_player_num == pass_player:
+                                break
+
+                        if current_player_num != pass_player:
                             update_board()
                             bid_val = 0
                             display_slider(bid_val, current_player)
-                        else:
+                        elif not all(bids == 0 for bids in player_bids):
                             max_val = max(player_bids)
                             max_player_num = player_bids.index(max_val)
                             max_player = players.get(player_names[max_player_num])
@@ -554,13 +562,16 @@ class Game:
                             player_bids = [0 for i in range(5)]
                             turn_state = "end"
                             turn_end_popup()
+                        else:
+                            turn_state = "end"
+                            update_board()
+                            turn_end_popup()
 
                 if turn_state == "auction":
                     mouse_x = pygame.mouse.get_pos()[0]
                     slider_min, slider_max = 255, 655
                     slider_x = max(slider_min, min(slider_max, mouse_x))
                     if pygame.mouse.get_pressed()[0]:
-                        old_bid = bid_val
                         if event.type == pygame.MOUSEBUTTONDOWN:
                             if plus_button.draw(screen):
                                 bid_val += 1
