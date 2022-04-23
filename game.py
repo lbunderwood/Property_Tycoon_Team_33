@@ -191,6 +191,12 @@ class Player:
         elif destination_index < 0:
             destination_index += len(tiles) - 1
 
+            # there are instances when this is necessary.
+            # If truly moving backwards, use pass_go=False
+            if pass_go:
+                self.balance += 200
+                self.passed_go = True
+
         self.index = destination_index
         print('Moved', spaces, 'spaces to tile n#: ', destination_index)
 
