@@ -31,6 +31,7 @@ class Player:
         self.index = 0
         self.in_jail = False
         self.free_jail_card = 0
+        self.passed_go = False
         if self.shape == 'boot':
             # self.position = (790, 790)
             self.image = pygame.image.load('graphics/boot.png')
@@ -186,6 +187,7 @@ class Player:
             destination_index -= len(tiles) - 1
             if pass_go:
                 self.balance += 200
+                self.passed_go = True
         elif destination_index < 0:
             destination_index += len(tiles) - 1
 
@@ -502,6 +504,7 @@ class Game:
                         turn_state, fp_money = draw_card(current_player, opportunity_knocks)
                         free_parking += fp_money
                         if turn_state == "end":
+                            update_board()
                             turn_end_popup()
 
                     elif event.key == pygame.K_n and turn_state == "decision card":
@@ -516,6 +519,7 @@ class Game:
                         prop = tiles[current_player.index]
                         current_player.balance -= prop.price
                         current_player.properties.append(prop)
+                        prop.owner = current_player.shape
                         update_board()
                         turn_state = "end"
                         turn_end_popup()
@@ -621,7 +625,7 @@ class Game:
                 for space in properties:
                     prop = properties[space]
                     if tiles[current_player.index] == prop:
-                        if prop.owner == 'bank':
+                        if prop.owner == 'bank' and current_player.passed_go:
                             try:
                                 deed = pygame.image.load("graphics/deed_"+space+".png")
                             except Exception:
@@ -631,9 +635,11 @@ class Game:
                             display_prompt('Press Y or N', height=610)
                             turn_state = "buy"
                             break
-                        elif prop.owner != current_player.shape:
+                        elif prop.owner != current_player.shape and prop.owner != 'bank':
                             current_player.balance -= prop.rent
-                            players[prop.owner].balance += prop.rent
+                            for player in players.values():
+                                if player.shape == prop.owner:
+                                    player.balance += prop.rent
                         turn_state = 'end'
                         break
 
