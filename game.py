@@ -543,6 +543,7 @@ class Game:
                         update_board()
 
                     elif event.key == pygame.K_y and turn_state == "decision card":
+                        update_board()
                         turn_state, fp_money = draw_card(current_player, opportunity_knocks)
                         free_parking += fp_money
                         if turn_state == "end":
