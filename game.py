@@ -499,9 +499,12 @@ class Game:
                         if dice[0].number == dice[1].number:
                             if current_player.in_jail:
                                 current_player.get_out_jail()
+                            elif doubles_count == 2:
+                                current_player.go_to_jail()
                             else:
-                                pass
-                                # add doubles behavior here
+                                doubles_count += 1
+                        else:
+                            doubles_count = 0
                         turn_state = "moved"
                         update_board()
 
@@ -523,10 +526,11 @@ class Game:
                         turn_state = "end"
 
                     elif event.key == pygame.K_SPACE and turn_state == "reset":
-                        print('Next Turn!')
-                        current_player_num, current_player = increment_player(current_player_num)
+                        doubles_count = 0
                         turn_state = "start"
                         update_board()
+                        print('Next Turn!')
+                        current_player_num, current_player = increment_player(current_player_num)
                         turn_start_popup(player_names[current_player_num])
                         if current_player.in_jail:
                             display_prompt("If you roll doubles, you can get out of jail.", height=610)
@@ -686,8 +690,13 @@ class Game:
                         break
 
             if turn_state == 'end':
-                turn_end_popup()
-                turn_state = 'reset'
+                if doubles_count == 0:
+                    turn_end_popup()
+                    turn_state = 'reset'
+                else:
+                    display_prompt("You rolled doubles, take another turn!", height=610)
+                    turn_start_popup(player_names[current_player_num])
+                    turn_state = "start"
 
         # draw & update
         clock.tick(60)
