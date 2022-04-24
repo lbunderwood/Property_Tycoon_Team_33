@@ -30,7 +30,7 @@ class Player:
         self.shape = shape
         self.index = 0
         self.in_jail = False
-        self.free_jail_card = 0
+        self.free_jail_card = []
         self.passed_go = False
         if self.shape == 'boot':
             # self.position = (790, 790)
@@ -122,7 +122,7 @@ class Player:
             fp_money = 30
             card_image = pygame.image.load('graphics/opportunity knocks 14.png')
         elif card == "Get out of jail free":
-            self.free_jail_card += 1
+            self.free_jail_card.append(stack.type)
             stack.remove_card()
             if stack.type == "Opportunity Knocks":
                 card_image = pygame.image.load('graphics/opportunity knocks 15.png')
@@ -445,6 +445,7 @@ class Game:
 
         free_parking = 0
         player_bids = [0 for i in range(5)]
+        doubles_count = 0
 
         def draw_card(draw_player, card_stack):
             old_idx = draw_player.index
@@ -492,10 +493,15 @@ class Game:
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_SPACE and turn_state == "start":
                         print("Current Player: ", current_player.shape)
-                        if current_player.in_jail and dice[0].number == dice[1].number:
-                            current_player.get_out_jail()
-                        else:
+                        if not current_player.in_jail:
                             current_player.move_x(total)
+
+                        if dice[0].number == dice[1].number:
+                            if current_player.in_jail:
+                                current_player.get_out_jail()
+                            else:
+                                pass
+                                # add doubles behavior here
                         turn_state = "moved"
                         update_board()
 
@@ -506,9 +512,13 @@ class Game:
                         turn_state = "end"
 
                     elif (event.key == pygame.K_f and turn_state == "start"
-                          and current_player.in_jail and current_player.free_jail_card > 0):
+                          and current_player.in_jail and len(current_player.free_jail_card) > 0):
                         current_player.get_out_jail()
-                        current_player.free_jail_card -= 1
+                        stack_type = current_player.free_jail_card.pop()
+                        if stack_type == "Opportunity Knocks":
+                            opportunity_knocks.return_card()
+                        else:
+                            pot_luck.return_card()
                         update_board()
                         turn_state = "end"
 
@@ -521,7 +531,7 @@ class Game:
                         if current_player.in_jail:
                             display_prompt("If you roll doubles, you can get out of jail.", height=610)
                             display_prompt("Press B to pay a £50 bail and get out of jail.", height=660)
-                            if current_player.free_jail_card > 0:
+                            if len(current_player.free_jail_card) > 0:
                                 display_prompt("Press F to use your get out of jail free card.", height=710)
 
                     elif event.key == pygame.K_SPACE and turn_state == "card":
