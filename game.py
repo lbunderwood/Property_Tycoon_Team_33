@@ -361,10 +361,11 @@ class Game:
             pygame.display.update()
 
         # turn function displays a prompt popup
-        def turn_start_popup():
+        def turn_start_popup(player_name):
             popup = pygame.image.load('graphics/turn start.png')
             screen.blit(popup, (235, 350))
             pygame.display.update()
+            display_prompt("It is "+player_name+"'s turn!")
 
         def display_prompt(prompt_str, height=560, update=True):
             prompt_text = prompt_font.render(prompt_str, True, 'Black')
@@ -426,8 +427,6 @@ class Game:
             return dice1, dice2
 
         run = True
-        update_board()
-        turn_start_popup()
 
         player_names = []
         for name in players.keys():
@@ -435,6 +434,9 @@ class Game:
         current_player_num = 0
         current_player = players.get(player_names[current_player_num])
         turn_state = "start"
+
+        update_board()
+        turn_start_popup(player_names[current_player_num])
 
         pot_luck = CardStack("Pot Luck")
         opportunity_knocks = CardStack("Opportunity Knocks")
@@ -465,7 +467,6 @@ class Game:
                 new_state = "decision card"
             else:
                 new_state = "end"
-                turn_end_popup()
 
             return new_state, fp
 
@@ -491,18 +492,37 @@ class Game:
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_SPACE and turn_state == "start":
                         print("Current Player: ", current_player.shape)
-                        in_jail = current_player.in_jail
-                        if not in_jail:
+                        if current_player.in_jail and dice[0].number == dice[1].number:
+                            current_player.get_out_jail()
+                        else:
                             current_player.move_x(total)
                         turn_state = "moved"
                         update_board()
+
+                    elif event.key == pygame.K_b and turn_state == "start" and current_player.in_jail:
+                        current_player.get_out_jail()
+                        current_player.balance -= 50
+                        update_board()
+                        turn_state = "end"
+
+                    elif (event.key == pygame.K_f and turn_state == "start"
+                          and current_player.in_jail and current_player.free_jail_card > 0):
+                        current_player.get_out_jail()
+                        current_player.free_jail_card -= 1
+                        update_board()
+                        turn_state = "end"
 
                     elif event.key == pygame.K_SPACE and turn_state == "reset":
                         print('Next Turn!')
                         current_player_num, current_player = increment_player(current_player_num)
                         turn_state = "start"
                         update_board()
-                        turn_start_popup()
+                        turn_start_popup(player_names[current_player_num])
+                        if current_player.in_jail:
+                            display_prompt("If you roll doubles, you can get out of jail.", height=610)
+                            display_prompt("Press B to pay a £50 bail and get out of jail.", height=660)
+                            if current_player.free_jail_card > 0:
+                                display_prompt("Press F to use your get out of jail free card.", height=710)
 
                     elif event.key == pygame.K_SPACE and turn_state == "card":
                         turn_state = 'moved'
@@ -513,14 +533,12 @@ class Game:
                         free_parking += fp_money
                         if turn_state == "end":
                             update_board()
-                            turn_end_popup()
 
                     elif event.key == pygame.K_n and turn_state == "decision card":
                         current_player.balance -= 10
                         free_parking += 10
                         turn_state = "end"
                         update_board()
-                        turn_end_popup()
 
                     elif event.key == pygame.K_y and turn_state == "buy":
                         print('Property Bought!')
@@ -530,7 +548,6 @@ class Game:
                         prop.owner = current_player.shape
                         update_board()
                         turn_state = "end"
-                        turn_end_popup()
 
                     elif event.key == pygame.K_n and turn_state == "buy":
                         print('Player passed on property')
@@ -567,11 +584,9 @@ class Game:
                             update_board()
                             player_bids = [0 for i in range(5)]
                             turn_state = "end"
-                            turn_end_popup()
                         else:
                             turn_state = "end"
                             update_board()
-                            turn_end_popup()
 
                 if turn_state == "auction":
                     mouse_x = pygame.mouse.get_pos()[0]
