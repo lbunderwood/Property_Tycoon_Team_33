@@ -60,6 +60,12 @@ class Player:
         fp_money = 0
         further_action = ""
 
+        def bankrupt_check(amount):
+            if self.pay(amount):
+                return ""
+            else:
+                return "bankrupt"
+
         if card == "Bank pays you divided of £50":
             self.balance += 50
             card_image = pygame.image.load('graphics/opportunity knocks 1.png')
@@ -73,11 +79,11 @@ class Player:
             self.move_to('hanxin')
             card_image = pygame.image.load('graphics/opportunity knocks 3(1).png')
         elif card == "Fined £15 for speeding":
-            self.balance -= 15
+            further_action = bankrupt_check(15)
             fp_money = 15
             card_image = pygame.image.load('graphics/opportunity knocks 4.png')
         elif card == "Pay university fees of £150":
-            self.balance -= 150
+            further_action = bankrupt_check(150)
             card_image = pygame.image.load('graphics/opportunity knocks 5.png')
         elif card == "Take a trip to Hove station. If you pass GO collect £200":
             self.move_to('hove')
@@ -86,11 +92,13 @@ class Player:
             self.balance += 150
             card_image = pygame.image.load('graphics/opportunity knocks 7.png')
         elif card == "You are assessed for repairs, £40/house, £115/hotel":
+            total = 0
             for prop in self.properties:
                 if prop.upgrade < 5:
-                    self.balance -= prop.upgrade*40
+                    total += prop.upgrade*40
                 elif prop.upgrade == 5:
-                    self.balance -= 115
+                    total += 115
+            further_action = bankrupt_check(total)
             card_image = pygame.image.load('graphics/opportunity knocks 8.png')
         elif card == "Advance to GO":
             self.move_to('go')
@@ -99,11 +107,13 @@ class Player:
             else:
                 card_image = pygame.image.load('graphics/pot luck 8.png')
         elif card == "You are assessed for repairs, £25/house, £100/hotel":
+            total = 0
             for prop in self.properties:
                 if prop.upgrade < 5:
-                    self.balance -= prop.upgrade * 25
+                    total += prop.upgrade * 25
                 elif prop.upgrade == 5:
-                    self.balance -= 100
+                    total += 100
+            further_action = bankrupt_check(total)
             card_image = pygame.image.load('graphics/opportunity knocks 10.png')
         elif card == "Go back 3 spaces":
             self.move_x(-3)
@@ -118,7 +128,7 @@ class Player:
             else:
                 card_image = pygame.image.load('graphics/pot luck 14.png')
         elif card == "Drunk in charge of a hoverboard. Fine £30":
-            self.balance -= 30
+            further_action = bankrupt_check(30)
             fp_money = 30
             card_image = pygame.image.load('graphics/opportunity knocks 14.png')
         elif card == "Get out of jail free":
@@ -144,26 +154,26 @@ class Player:
             self.balance += 200
             card_image = pygame.image.load('graphics/pot luck 5.png')
         elif card == "Pay bill for text books of £100":
-            self.balance -= 100
+            further_action = bankrupt_check(100)
             card_image = pygame.image.load('graphics/pot luck 6.png')
         elif card == "Mega late night taxi bill pay £50":
-            self.balance -= 50
+            further_action = bankrupt_check(50)
             card_image = pygame.image.load('graphics/pot luck 7.png')
         elif card == "From sale of Bitcoin you get £50":
             self.balance += 50
             card_image = pygame.image.load('graphics/pot luck 9.png')
         elif card == "Bitcoin assets fall - pay off Bitcoin short fall":
-            self.balance -= 50
+            further_action = bankrupt_check(50)
             card_image = pygame.image.load('graphics/pot luck 10.png')
         elif card == "Pay a £10 fine or take opportunity knocks":
             further_action = "decision"
             card_image = pygame.image.load('graphics/pot luck 11.png')
         elif card == "Pay insurance fee of £50":
-            self.balance -= 50
+            further_action = bankrupt_check(50)
+            fp_money = 50
             card_image = pygame.image.load('graphics/pot luck 12.png')
         elif card == "Savings bond matures, collect £100":
             self.balance += 100
-            fp_money = 50
             card_image = pygame.image.load('graphics/pot luck 13.png')
         elif card == "Received interest on shares of £25":
             self.balance += 25
@@ -227,6 +237,10 @@ class Player:
 
     def get_out_jail(self):
         self.in_jail = False
+
+    def pay(self, amount):
+        self.balance -= amount
+        return self.balance >= 0
 
 
 class CardStack:
@@ -326,7 +340,7 @@ class Game:
 
         # Updates and displays player pieces
         def blit_players():
-            for player in self.players.values():
+            for player in players.values():
                 currently_on = tiles[player.index]
                 coord = currently_on.position
                 if player.in_jail:
@@ -466,6 +480,8 @@ class Game:
                 display_prompt('Would you like to draw an Opportunity Knocks card?')
                 display_prompt('Press Y or N', height=610)
                 new_state = "decision card"
+            elif further_action == "bankrupt":
+                new_state = further_action
             else:
                 new_state = "end"
 
@@ -510,9 +526,11 @@ class Game:
 
                     elif event.key == pygame.K_b and turn_state == "start" and current_player.in_jail:
                         current_player.get_out_jail()
-                        current_player.balance -= 50
+                        if not current_player.pay(100):
+                            turn_state = "bankrupt"
+                        else:
+                            turn_state = "end"
                         update_board()
-                        turn_state = "end"
 
                     elif (event.key == pygame.K_f and turn_state == "start"
                           and current_player.in_jail and len(current_player.free_jail_card) > 0):
@@ -550,9 +568,11 @@ class Game:
                             update_board()
 
                     elif event.key == pygame.K_n and turn_state == "decision card":
-                        current_player.balance -= 10
-                        free_parking += 10
-                        turn_state = "end"
+                        if not current_player.pay(10):
+                            turn_state = "bankrupt"
+                        else:
+                            free_parking += 10
+                            turn_state = "end"
                         update_board()
 
                     elif event.key == pygame.K_y and turn_state == "buy":
@@ -571,17 +591,21 @@ class Game:
                         pass_player = current_player_num
                         while True:
                             current_player_num, current_player = increment_player(current_player_num)
-                            if current_player.passed_go or current_player_num == pass_player:
+                            if current_player_num == pass_player:
+                                turn_state = "end"
                                 break
-                        display_slider(bid_val, current_player)
-                        turn_state = "auction"
+                            elif current_player.passed_go and current_player.balance > 0:
+                                turn_state = "auction"
+                                display_slider(bid_val, current_player)
+                                break
 
                     elif event.key == pygame.K_RETURN and turn_state == "auction":
                         player_bids[current_player_num] = bid_val
 
                         while True:
                             current_player_num, current_player = increment_player(current_player_num)
-                            if current_player.passed_go or current_player_num == pass_player:
+                            if ((current_player.passed_go and current_player.balance > 0)
+                                    or current_player_num == pass_player):
                                 break
 
                         if current_player_num != pass_player:
@@ -597,11 +621,15 @@ class Game:
                             max_player.balance -= max_val
                             max_player.properties.append(prop)
                             update_board()
-                            player_bids = [0 for i in range(5)]
+                            player_bids = [0 for i in range(len(players))]
                             turn_state = "end"
                         else:
                             turn_state = "end"
                             update_board()
+
+                    elif event.key == pygame.K_SPACE and turn_state == "bankrupt":
+                        update_board()
+                        turn_state = "reset"
 
                 if turn_state == "auction":
                     mouse_x = pygame.mouse.get_pos()[0]
@@ -657,13 +685,18 @@ class Game:
 
                 for space in taxes:
                     if tiles[current_player.index] == taxes[space]:
+                        tax = 0
                         if space == "supertax":
-                            current_player.balance -= 100
+                            tax = 100
                             display_prompt("Super Tax! You must pay £100 to the bank", 510)
                         elif space == "incometax":
-                            current_player.balance -= 200
+                            tax = 200
                             display_prompt("Income Tax! You must pay £200 to the bank", 510)
-                        turn_state = 'end'
+
+                        if not current_player.pay(tax):
+                            turn_state = "bankrupt"
+                        else:
+                            turn_state = "end"
 
                 if turn_state != 'moved':
                     continue
@@ -681,13 +714,16 @@ class Game:
                             display_prompt('Would you like to purchase this property?')
                             display_prompt('Press Y or N', height=610)
                             turn_state = "buy"
-                            break
                         elif prop.owner != current_player.shape and prop.owner != 'bank':
-                            current_player.balance -= prop.rent
-                            for player in players.values():
-                                if player.shape == prop.owner:
-                                    player.balance += prop.rent
-                        turn_state = 'end'
+                            if not current_player.pay(prop.rent):
+                                turn_state = "bankrupt"
+                            else:
+                                turn_state = "end"
+                                for player in players.values():
+                                    if player.shape == prop.owner:
+                                        player.balance += prop.rent
+                        else:
+                            turn_state = "end"
                         break
 
             if turn_state == 'end':
@@ -698,6 +734,18 @@ class Game:
                     display_prompt("You rolled doubles, take another turn!", height=610)
                     turn_start_popup(player_names[current_player_num])
                     turn_state = "start"
+
+            if turn_state == "bankrupt":
+                # add code here for selling/mortgaging assets rather than instant expulsion
+                update_board()
+                display_prompt(player_names[current_player_num] + " has gone Bankrupt!")
+                display_prompt("Final balance was " + str(current_player.balance), height=610)
+                display_prompt("Press SPACE to continue.", height=660)
+                del players[player_names[current_player_num]]
+                del player_names[current_player_num]
+                turn_state = "reset"
+
+
 
         # draw & update
         clock.tick(60)
