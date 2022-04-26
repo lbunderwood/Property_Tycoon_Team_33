@@ -544,17 +544,23 @@ class Game:
                         turn_state = "end"
 
                     elif event.key == pygame.K_SPACE and turn_state == "reset":
-                        doubles_count = 0
-                        turn_state = "start"
                         update_board()
-                        print('Next Turn!')
-                        current_player_num, current_player = increment_player(current_player_num)
-                        turn_start_popup(player_names[current_player_num])
-                        if current_player.in_jail:
-                            display_prompt("If you roll doubles, you can get out of jail.", height=610)
-                            display_prompt("Press B to pay a £50 bail and get out of jail.", height=660)
-                            if len(current_player.free_jail_card) > 0:
-                                display_prompt("Press F to use your get out of jail free card.", height=710)
+                        if len(players) > 1:
+                            doubles_count = 0
+                            turn_state = "start"
+                            print('Next Turn!')
+                            current_player_num, current_player = increment_player(current_player_num)
+                            turn_start_popup(player_names[current_player_num])
+                            if current_player.in_jail:
+                                display_prompt("If you roll doubles, you can get out of jail.", height=610)
+                                display_prompt("Press B to pay a £50 bail and get out of jail.", height=660)
+                                if len(current_player.free_jail_card) > 0:
+                                    display_prompt("Press F to use your get out of jail free card.", height=710)
+                        else:
+                            display_prompt(player_names[0]+" wins!")
+                            display_prompt("Press SPACE to conclude the game", height=610)
+                            turn_state = "game over"
+
 
                     elif event.key == pygame.K_SPACE and turn_state == "card":
                         turn_state = 'moved'
@@ -630,6 +636,9 @@ class Game:
                     elif event.key == pygame.K_SPACE and turn_state == "bankrupt":
                         update_board()
                         turn_state = "reset"
+
+                    elif event.key == pygame.K_SPACE and turn_state == "game over":
+                        run = False
 
                 if turn_state == "auction":
                     mouse_x = pygame.mouse.get_pos()[0]
