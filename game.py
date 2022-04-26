@@ -335,8 +335,8 @@ class Game:
         opportunityCards = pygame.image.load('graphics/opportunitycards.png')
         potluckCards = pygame.image.load('graphics/potluckcards.png')
 
-        plus_button = Button(670, 450, prompt_font.render("+", True, 'Black'), 3)
-        minus_button = Button(220, 450, prompt_font.render("-", True, 'Black'), 3)
+        plus_button = Button(675, 475, pygame.image.load('graphics/plus button.png'), 1)
+        minus_button = Button(215, 475, pygame.image.load('graphics/minus button.png'), 1)
 
         # Updates and displays player pieces
         def blit_players():
