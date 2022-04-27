@@ -368,10 +368,30 @@ class Game:
             for tile in properties.values():
                 screen.blit(tile.image, tile.position)
             # pygame.display.update()
-
+        
+        # displays players' balances
+        def blit_balances():
+            balance_font = pygame.font.Font('fonts/Cinzel-SemiBold.ttf', 15)
+            for player in self.players.values():
+                balance = '£ ' + str(player.balance)
+                balance_text = balance_font.render(balance, True, 'Black')
+                if player.shape == 'cat':
+                    screen.blit(balance_text, (185, 150))
+                elif player.shape == 'boot':
+                    screen.blit(balance_text, (185, 195))
+                elif player.shape == 'ship':
+                    screen.blit(balance_text, (185, 225))
+                elif player.shape == 'iron':
+                    screen.blit(balance_text, (345, 152))
+                elif player.shape == 'hatstand':
+                    screen.blit(balance_text, (345, 190))
+                elif player.shape == 'smartphone':
+                    screen.blit(balance_text, (345, 230))
+        
         def update_board():
             blit_board()
             blit_players()
+            blit_balances()
             pygame.display.update()
 
         # turn function displays a prompt popup
