@@ -16,16 +16,16 @@ class TestPlayer(unittest.TestCase):
     # and all variables are assigned correctly
     def test_player_init_valid(self):
         player_pieces = ["boot", "ship", "hatstand", "smartphone", "cat", "iron"]
-        idx = 0
         for piece in player_pieces:
             player = Player(piece)
             self.assertEqual(player.shape, piece)
             self.assertEqual(player.balance, 1500)
-            self.assertEqual(player.properties, {})
-            self.assertTrue(player.position[0] == 790 or 860)
-            self.assertTrue(player.position[1] == 790 or 835 or 870)
+            self.assertEqual(player.properties, [])
+            self.assertEqual(player.index, 0)
+            self.assertFalse(player.in_jail)
+            self.assertEqual(player.free_jail_card, [])
+            self.assertFalse(player.passed_go)
             self.assertEqual(player.image.get_size(), (24, 24))
-            idx += 1
 
     # Tests error handling for invalid piece shape
     # by checking that it will call exit and print the proper error message
@@ -40,6 +40,49 @@ class TestPlayer(unittest.TestCase):
                 pass
             self.assertEqual(console_out.getvalue(), "\nNot a valid player shape, check player info\n")
         sys.stdout = sys.__stdout__
+
+    def test_player_draw_card(self):
+        player = Player("iron")
+        stack = CardStack("Opportunity Knocks")
+        img, fp, action = player.draw_card(stack, 5)
+        self.assertEqual(player.balance, 1550)
+        self.assertEqual(fp, 0)
+        self.assertEqual(action, "")
+
+    def test_player_move_x(self):
+        player = Player("iron")
+        move_amt = 5
+        for i in range(1, 4):
+            player.move_x(move_amt)
+            self.assertEqual(player.index, move_amt * i)
+
+    def test_player_move_to(self):
+        player = Player("iron")
+        player.move_to("jail")
+        self.assertEqual(player.index, 10)
+
+    def test_player_go_to_jail(self):
+        player = Player("iron")
+        player.go_to_jail()
+        self.assertTrue(player.in_jail)
+        self.assertEqual(player.index, 10)
+
+    def test_player_get_out_jail(self):
+        player = Player("iron")
+        player.go_to_jail()
+        player.get_out_jail()
+        self.assertFalse(player.in_jail)
+        self.assertEqual(player.index, 10)
+
+    def test_player_pay(self):
+        player = Player("iron")
+        amount = 1000
+        result = player.pay(amount)
+        self.assertTrue(result)
+        self.assertEqual(player.balance, 500)
+        result = player.pay(amount)
+        self.assertFalse(result)
+        self.assertEqual(player.balance, -500)
 
 
 # Test Case for testing the CardStack class
@@ -69,7 +112,7 @@ class TestCardStack(unittest.TestCase):
                 self.assertRaises(SystemExit, CardStack(card_type))
             except SystemExit:
                 pass
-            self.assertEqual(console_out.getvalue(), "\nInvalid card type given to CardStack\n")
+            self.assertEqual(console_out.getvalue(), "\n\nInvalid card type \""+card_type+"\" given to CardStack\n")
         sys.stdout = sys.__stdout__
 
     def test_cardstack_shuffle(self):
@@ -94,6 +137,29 @@ class TestCardStack(unittest.TestCase):
         for card in cardArray:
             self.assertEqual(card, cardStack.draw())
 
+    def test_cardstack_remove_card(self):
+        stack = CardStack("Opportunity Knocks")
+        last_card = stack.cards[-1]
+        length = len(stack.cards)
+        stack.remove_card()
+        self.assertNotEqual(last_card, stack.cards[-1])
+        self.assertEqual(length, len(stack.cards) + 1)
+
+    def test_cardstack_return_card(self):
+        stack = CardStack("Opportunity Knocks")
+        last_card = stack.cards[-1]
+        length = len(stack.cards)
+        stack.return_card()
+        self.assertEqual(stack.cards[-1], "Get out of jail free")
+        self.assertEqual(length, len(stack.cards) - 1)
+
+
+#Test Case for testing the Tile class
+class TestTile(unittest.TestCase):
+    def test_tile_init(self):
+        go_tile = Tile((770, 770), pygame.image.load('graphics/go.png'))
+        self.assertEqual(go_tile.position, (770, 770))
+        self.assertEqual(go_tile.image.get_size(), (140, 140))
 
 # Test Case for testing the Property class
 class TestProperty(unittest.TestCase):
@@ -106,7 +172,7 @@ class TestProperty(unittest.TestCase):
         self.assertEqual(prop.rent, rent)
         self.assertEqual(prop.image, image)
         self.assertFalse(prop.mortgaged)
-        self.assertEqual(prop.owner, "")
+        self.assertEqual(prop.owner, "bank")
 
 
 # Test Case for testing the Dice class
