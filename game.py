@@ -8,6 +8,11 @@ import random
 from sys import exit
 from menu.button import *
 
+# PROPERTY TYCOON
+# This is an implementation of the property tycoon game for the Software Engineering module by team 33
+# Using the Pygame base development kit which is free to use for anyone
+
+
 WIDTH = HEIGHT = 910
 
 # Makes our window ignore Windows OS application scaling
@@ -18,10 +23,12 @@ x = 505
 y = 50
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x, y)
 
+
 def error(msg):
-    print("\n"+msg)
+    print("\n" + msg)
     pygame.quit()
     exit()
+
 
 class Player:
     def __init__(self, shape):
@@ -95,7 +102,7 @@ class Player:
             total = 0
             for prop in self.properties:
                 if prop.upgrade < 5:
-                    total += prop.upgrade*40
+                    total += prop.upgrade * 40
                 elif prop.upgrade == 5:
                     total += 115
             further_action = bankrupt_check(total)
@@ -368,7 +375,7 @@ class Game:
             for tile in properties.values():
                 screen.blit(tile.image, tile.position)
             # pygame.display.update()
-        
+
         # displays players' balances
         def blit_balances():
             balance_font = pygame.font.Font('fonts/Cinzel-SemiBold.ttf', 15)
@@ -376,18 +383,24 @@ class Game:
                 balance = '£ ' + str(player.balance)
                 balance_text = balance_font.render(balance, True, 'Black')
                 if player.shape == 'cat':
-                    screen.blit(balance_text, (185, 150))
+                    screen.blit(pygame.image.load('graphics/cat_icon.png'), (515, 150))
+                    screen.blit(balance_text, (555, 155))
                 elif player.shape == 'boot':
-                    screen.blit(balance_text, (185, 195))
+                    screen.blit(pygame.image.load('graphics/boot_icon.png'), (520, 190))
+                    screen.blit(balance_text, (555, 197))
                 elif player.shape == 'ship':
-                    screen.blit(balance_text, (185, 225))
+                    screen.blit(pygame.image.load('graphics/ship_icon.png'), (520, 230))
+                    screen.blit(balance_text, (555, 240))
                 elif player.shape == 'iron':
-                    screen.blit(balance_text, (345, 152))
+                    screen.blit(pygame.image.load('graphics/iron_icon.png'), (620, 150))
+                    screen.blit(balance_text, (660, 155))
                 elif player.shape == 'hatstand':
-                    screen.blit(balance_text, (345, 190))
+                    screen.blit(pygame.image.load('graphics/hatstand_icon.png'), (620, 190))
+                    screen.blit(balance_text, (660, 195))
                 elif player.shape == 'smartphone':
-                    screen.blit(balance_text, (345, 230))
-        
+                    screen.blit(pygame.image.load('graphics/smartphone_icon.png'), (620, 230))
+                    screen.blit(balance_text, (660, 235))
+
         def update_board():
             blit_board()
             blit_players()
@@ -399,7 +412,7 @@ class Game:
             popup = pygame.image.load('graphics/turn start.png')
             screen.blit(popup, (235, 350))
             pygame.display.update()
-            display_prompt("It is "+player_name+"'s turn!")
+            display_prompt("It is " + player_name + "'s turn!")
 
         def display_prompt(prompt_str, height=560, update=True):
             prompt_text = prompt_font.render(prompt_str, True, 'Black')
@@ -428,14 +441,14 @@ class Game:
 
             circle_x = math.floor(bid / player.balance * bar_length + x_pos)
             pygame.draw.rect(screen, black, pygame.Rect(x_pos, y_pos, bar_length, thickness))
-            pygame.draw.circle(screen, black, (circle_x, y_pos+thickness/2), thickness)
+            pygame.draw.circle(screen, black, (circle_x, y_pos + thickness / 2), thickness)
 
             lower_text = prompt_font.render("0", True, 'Black')
-            lower_text_rect = lower_text.get_rect(topleft=(x_pos-30, y_pos-5))
+            lower_text_rect = lower_text.get_rect(topleft=(x_pos - 30, y_pos - 5))
             screen.blit(lower_text, lower_text_rect)
 
             higher_text = prompt_font.render(str(player.balance), True, 'Black')
-            higher_text_rect = higher_text.get_rect(topleft=(x_pos+bar_length+15, y_pos-5))
+            higher_text_rect = higher_text.get_rect(topleft=(x_pos + bar_length + 15, y_pos - 5))
             screen.blit(higher_text, higher_text_rect)
 
             higher_text = prompt_font.render(str(bid), True, 'Black')
@@ -577,10 +590,9 @@ class Game:
                                 if len(current_player.free_jail_card) > 0:
                                     display_prompt("Press F to use your get out of jail free card.", height=710)
                         else:
-                            display_prompt(player_names[0]+" wins!")
+                            display_prompt(player_names[0] + " wins!")
                             display_prompt("Press SPACE to conclude the game", height=610)
                             turn_state = "game over"
-
 
                     elif event.key == pygame.K_SPACE and turn_state == "card":
                         turn_state = 'moved'
@@ -642,7 +654,7 @@ class Game:
                             max_val = max(player_bids)
                             max_player_num = player_bids.index(max_val)
                             max_player = players.get(player_names[max_player_num])
-                            print('Property sold to: '+player_names[max_player_num])
+                            print('Property sold to: ' + player_names[max_player_num])
                             prop = tiles[current_player.index]
                             max_player.balance -= max_val
                             max_player.properties.append(prop)
@@ -681,7 +693,6 @@ class Game:
                             bid_val = calc_bid(slider_x, current_player)
                     bid_val = max(0, min(current_player.balance, bid_val))
                     display_slider(bid_val, current_player)
-
 
             # perform the action associated with the space the player landed on
             if turn_state == "moved":
@@ -736,9 +747,9 @@ class Game:
                     if tiles[current_player.index] == prop:
                         if prop.owner == 'bank' and current_player.passed_go:
                             try:
-                                deed = pygame.image.load("graphics/deed_"+space+".png")
+                                deed = pygame.image.load("graphics/deed_" + space + ".png")
                             except Exception:
-                                error("There is no deed graphic for "+space)
+                                error("There is no deed graphic for " + space)
                             screen.blit(deed, (330, 150))
                             display_prompt('Would you like to purchase this property?')
                             display_prompt('Press Y or N', height=610)
@@ -773,8 +784,6 @@ class Game:
                 del players[player_names[current_player_num]]
                 del player_names[current_player_num]
                 turn_state = "reset"
-
-
 
         # draw & update
         clock.tick(60)
@@ -855,15 +864,14 @@ tiles = [corners['go'], properties['creek'], card_spaces['potluck3'], properties
          properties['ghengis'], card_spaces['potluck2'], properties['ibis'], properties['portslade'],
          card_spaces['opportunity1'], properties['james'], taxes['supertax'], properties['turing']]
 
-
 # This if statement makes it so that when running the test suite, the game does not launch
 if __name__ == '__main__':
     players = {
-        'Dan': Player('iron'),
+        'Peach': Player('iron'),
         'Mario': Player('cat'),
         'Luigi': Player('boot'),
         'Wario': Player('hatstand'),
-        'Waluigi': Player('smartphone')
+        'Waluigi': Player('ship')
     }
     game = Game(players)
     game.main()
